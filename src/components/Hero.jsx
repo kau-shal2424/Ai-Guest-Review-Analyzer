@@ -10,7 +10,7 @@ export default function Hero() {
       </p>
 
       <button className="mt-8 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
-        Analyze Reviews
+        Get Started
       </button>
     </section>
   );
