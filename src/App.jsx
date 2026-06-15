@@ -1,0 +1,21 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Home from "./pages/Home";
+import Analyze from "./pages/Analyze";
+import Dashboard from "./pages/Dashboard";
+import About from "./pages/About";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/analyze" element={<Analyze />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/about" element={<About />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
