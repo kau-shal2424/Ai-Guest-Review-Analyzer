@@ -1,6 +1,6 @@
 # AI Guest Review Analyzer (Frontend)
 
-Frontend application for the AI Guest Review Analyzer project built using React, Vite, and Tailwind CSS.
+Frontend application for the AI Guest Review Analyzer project built using React, Vite, and Tailwind CSS. It communicates with the FastAPI backend to manage reviews and perform sentiment/theme analysis.
 
 ## Tech Stack
 
