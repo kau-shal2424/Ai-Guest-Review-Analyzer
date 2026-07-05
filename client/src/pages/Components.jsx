@@ -17,7 +17,6 @@ import {
   Info,
   AlertTriangle,
 } from "lucide-react";
-import Navbar from "../components/Navbar";
 
 export default function Components() {
   // Modal states
@@ -34,8 +33,6 @@ export default function Components() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
-      <Navbar />
-
       <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 flex flex-col gap-10">
         <div>
           <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white">

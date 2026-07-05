@@ -2,31 +2,48 @@
 
 ## Overview
 
-AI Guest Review Analyzer is a full‑stack application that collects hotel guest reviews, runs simple AI‑based sentiment and theme analysis, and provides a modern React frontend for users to browse, search, and analyze reviews.
+**AI Guest Review Analyzer** is a full‑stack SaaS‑style application that lets you collect hotel guest reviews, run AI‑powered sentiment and theme analysis, and manage reviews through a modern, premium React UI.
 
-- **Backend**: FastAPI (Python) exposing REST endpoints for CRUD operations on reviews and an `/api/analyze` endpoint that returns sentiment and theme.
-- **Frontend**: React + Vite (with Tailwind CSS) offering a clean UI for listing, searching, creating, updating, and deleting reviews, as well as an analysis page.
+### Key Features (Week 5 Deliverables)
+- **Premium Review List** with glassmorphic cards, hover animations, and responsive layout.
+- **Review Details Modal** – shows full review, sentiment, theme, AI response, copy actions, edit/delete shortcuts.
+- **Edit Review Modal** – inline edit of the review text with validation, live update via `PUT /api/reviews/{id}`.
+- **Delete Confirmation Modal** – custom UI (warning icon, preview, badges) replaces `window.confirm`, with loading spinner and toast feedback.
+- **Search** – debounced live search across reviews.
+- **Dark‑mode & responsive design** – Tailwind CSS only, no external UI libraries.
+- **Toast notifications** – React Hot Toast for success/error messages.
 
 ## Repository Structure
-
 ```
 AI-Guest-Review-Analyzer/
-├─ backend/        # FastAPI server
-├─ client/         # React frontend (Vite)
+├─ backend/        # FastAPI server (Python)
+├─ client/         # React + Vite frontend (Tailwind CSS)
+│   ├─ src/
+│   │   ├─ components/
+│   │   │   ├─ reviews/
+│   │   │   │   ├─ ReviewItemCard.jsx
+│   │   │   │   ├─ ReviewModal.jsx
+│   │   │   │   ├─ EditReviewModal.jsx
+│   │   │   │   └─ DeleteReviewModal.jsx
+│   │   │   └─ ui/ (shared UI primitives)
+│   │   ├─ pages/
+│   │   │   ├─ Reviews.jsx
+│   │   │   ├─ Analyze.jsx
+│   │   │   ├─ Dashboard.jsx
+│   │   │   └─ …
+│   │   └─ api/reviews.js (axios wrappers)
 ├─ .gitignore
-└─ README.md       # Project overview
+└─ README.md
 ```
 
 ## Getting Started
-
 ### Backend
-
 ```bash
 cd backend
 python -m venv venv
-# Windows activation
+# Windows
 venv\\Scripts\\activate
-# On macOS/Linux
+# macOS/Linux
 # source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
@@ -34,14 +51,18 @@ uvicorn main:app --reload
 The API will be available at `http://127.0.0.1:8000`.
 
 ### Frontend
-
 ```bash
 cd client
 npm install
 npm run dev
 ```
-The development server runs at `http://localhost:5173`.
+The dev server runs at `http://localhost:5173`.
+
+## Development Notes
+- All UI components use **Tailwind CSS** utilities – no Material UI or external component libraries.
+- Modals use **glassmorphism**, backdrop blur, fade/scale animations, and are fully keyboard accessible (ESC to close, focus trapping).
+- API interactions are defined in `src/api/reviews.js` (GET, POST, PUT, DELETE).
+- Toasts are displayed via `react-hot-toast`.
 
 ## License
-
 MIT © Kaushal Thakur

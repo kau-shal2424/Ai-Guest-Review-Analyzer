@@ -1,13 +1,30 @@
-# Python
+# Python environment
 backend/venv/
 backend/__pycache__/
 *.pyc
 backend/.env
 
-# Node
+# Node environment
+node_modules/
 client/node_modules/
 client/dist/
+client/.vite/
+client/.cache/
 
-# OS
+# OS generated files
 .DS_Store
 Thumbs.db
+
+# Logs and temporary files
+logs/
+*.log
+tmp/
+
+# IDE and editor folders
+.vscode/
+.idea/
+
+# Additional ignores for project root
+__pycache__/
+.env
+dist/

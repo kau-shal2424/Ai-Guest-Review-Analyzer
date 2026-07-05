@@ -16,7 +16,6 @@ import {
   Phone,
 } from "lucide-react";
 import { Button, Input } from "../components/ui";
-import Navbar from "../components/Navbar";
 import { useTheme } from "../context/ThemeContext";
 
 // --- Toggle Switch Component ---
@@ -118,8 +117,6 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
-      <Navbar />
-
       <div className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 md:px-8 flex flex-col gap-8">
         {/* Page Header */}
         <div>

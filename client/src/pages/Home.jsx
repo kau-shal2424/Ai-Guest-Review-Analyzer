@@ -1,7 +1,5 @@
-import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import ReviewCard from "../components/ReviewCard";
-import Footer from "../components/Footer";
 import {
   SmilePlus,
   Tag,
@@ -65,7 +63,6 @@ const features = [
 export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
-      <Navbar />
 
       {/* Hero — vertically stacked on all sizes */}
       <Hero />
@@ -139,7 +136,6 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 }
