@@ -21,7 +21,7 @@ export default function Analyze() {
       setResult(null); // clear previous results
 
       const response = await axios.post(
-        axios.post(`${import.meta.env.VITE_API_BASE_URL}/analyze`, { review })
+        `${import.meta.env.VITE_API_BASE_URL}/analyze`,
         { review }
       );
 
