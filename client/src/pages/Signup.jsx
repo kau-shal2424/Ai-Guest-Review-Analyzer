@@ -1,21 +1,44 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { User, Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
-import { Button, Input } from "../components/ui";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, Mail, Lock, ArrowRight, Eye, EyeOff, ChevronDown } from "lucide-react";
+import { Button, Input, showError } from "../components/ui";
+import { useAuth } from "../context/AuthContext";
 
 export default function Signup() {
+  const navigate = useNavigate();
+  const { register, token } = useAuth();
+  
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("user");
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [token, navigate]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !confirmPassword || !role) {
       setError("Please fill in all fields");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      showError("Passwords do not match");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      showError("Password must be at least 8 characters long");
       return;
     }
     if (!agree) {
@@ -24,10 +47,16 @@ export default function Signup() {
     }
     setError("");
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      await register(name, email, password, confirmPassword, role);
+      // AuthContext handles navigate to login on success
+    } catch (err) {
+      const errorMsg = err.response?.data?.detail || "Registration failed. Please try again.";
+      setError(errorMsg);
+    } finally {
       setIsLoading(false);
-      alert("Successfully signed up! (Mock)");
-    }, 1500);
+    }
   };
 
   return (
@@ -91,7 +120,37 @@ export default function Signup() {
               error={error && !password ? "Password is required" : ""}
             />
 
-            <div className="flex items-start gap-2 text-xs">
+            <Input
+              type={showPassword ? "text" : "password"}
+              label="Confirm Password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              leftIcon={<Lock className="w-4 h-4" />}
+              error={error && !confirmPassword ? "Confirm password is required" : ""}
+            />
+
+            {/* Account Type (Role Selection Dropdown) */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Account Type
+              </label>
+              <div className="relative">
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-slate-100 transition-all cursor-pointer appearance-none"
+                >
+                  <option value="user">User (Standard Account)</option>
+                  <option value="admin">Admin (System Manager)</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-500 dark:text-slate-400">
+                  <ChevronDown className="w-4.5 h-4.5" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2 text-xs mt-1">
               <input
                 id="terms"
                 type="checkbox"
@@ -120,7 +179,7 @@ export default function Signup() {
               </label>
             </div>
 
-            {error && (!name || !email || !password || !agree) && (
+            {error && (
               <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 text-center">
                 {error}
               </p>

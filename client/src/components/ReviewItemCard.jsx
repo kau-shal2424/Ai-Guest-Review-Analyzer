@@ -39,6 +39,23 @@ const ReviewItemCard = ({ review, onDelete, onEdit, onCardClick }) => {
         }
       }}
     >
+      {/* User Info (Visible if admin views it and joined userInfo is available) */}
+      {review.userInfo && (
+        <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+          <div className="w-7 h-7 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs overflow-hidden flex-shrink-0">
+            {review.userInfo.profileImage ? (
+              <img src={review.userInfo.profileImage} alt="" className="w-full h-full object-cover" />
+            ) : (
+              review.userInfo.fullName?.substring(0, 2).toUpperCase()
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{review.userInfo.fullName}</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">{review.userInfo.email}</p>
+          </div>
+        </div>
+      )}
+
       {/* Header: Badges & Date */}
       <div className="flex justify-between items-start flex-wrap gap-2">
         <div className="flex gap-2">
@@ -79,7 +96,7 @@ const ReviewItemCard = ({ review, onDelete, onEdit, onCardClick }) => {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(_id);
+            onDelete(review);
           }}
           className="text-sm font-bold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors px-4 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20"
         >

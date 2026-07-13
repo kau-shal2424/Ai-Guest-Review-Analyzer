@@ -177,7 +177,7 @@ export default function ReviewModal({ review, onClose, onEdit, onDelete }) {
         <div className="flex items-center justify-between px-6 py-5 bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800/80 backdrop-blur-md">
           <button
             onClick={() => {
-              onDelete(review._id);
+              onDelete(review);
               onClose();
             }}
             className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"

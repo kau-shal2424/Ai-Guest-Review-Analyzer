@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 import { fetchReviews, searchReviews, deleteReview } from '../api/reviews';
 import ReviewItemCard from '../components/ReviewItemCard';
 import LoadingSkeleton from '../components/LoadingSkeleton';
@@ -8,9 +9,11 @@ import ErrorState from '../components/ErrorState';
 import ReviewModal from '../components/reviews/ReviewModal';
 import EditReviewModal from '../components/reviews/EditReviewModal';
 import DeleteReviewModal from '../components/reviews/DeleteReviewModal';
+import { useAuth } from '../context/AuthContext';
 
 
 export default function Reviews() {
+  const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,10 +42,20 @@ export default function Reviews() {
       setLoading(true);
       setError(null);
       let data;
-      if (debouncedQuery.trim()) {
-        data = await searchReviews(debouncedQuery.trim());
+      if (user?.role === 'admin') {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/reviews`, {
+          params: {
+            limit: 100,
+            search: debouncedQuery.trim() || undefined
+          }
+        });
+        data = response.data.reviews;
       } else {
-        data = await fetchReviews();
+        if (debouncedQuery.trim()) {
+          data = await searchReviews(debouncedQuery.trim());
+        } else {
+          data = await fetchReviews();
+        }
       }
       setReviews(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -52,7 +65,7 @@ export default function Reviews() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedQuery]);
+  }, [debouncedQuery, user]);
 
   useEffect(() => {
     loadReviews();
@@ -159,15 +172,6 @@ export default function Reviews() {
             review={deleteTarget}
             onClose={() => setDeleteTarget(null)}
             onConfirm={confirmDelete}
-          />
-        )}
-        {editReview && (
-          <EditReviewModal
-            review={editReview}
-            onClose={() => setEditReview(null)}
-            onUpdate={(updated) => {
-              setReviews((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
-            }}
           />
         )}
       </main>

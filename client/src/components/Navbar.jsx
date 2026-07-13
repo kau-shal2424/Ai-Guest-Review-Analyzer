@@ -1,23 +1,30 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Sun, Moon, Menu, X, Settings, Bell, User } from "lucide-react";
+import { Sun, Moon, Menu, X, Settings, User, LogOut, ChevronDown } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
-
-const NAV_LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/reviews", label: "Reviews" },
-  { to: "/analyze", label: "Analyze" },
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/components", label: "Showcase" },
-  { to: "/about", label: "About" },
-];
+import { useAuth } from "../context/AuthContext";
+import NotificationDropdown from "./NotificationDropdown";
 
 export default function Navbar() {
   const { isDark, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const location = useLocation();
   const menuRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Handle scroll to add deeper shadow/border
   useEffect(() => {
@@ -36,7 +43,10 @@ export default function Navbar() {
   // Close mobile menu on Escape key
   useEffect(() => {
     const handleEsc = (e) => {
-      if (e.key === "Escape") setIsMenuOpen(false);
+      if (e.key === "Escape") {
+        setIsMenuOpen(false);
+        setIsDropdownOpen(false);
+      }
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
@@ -50,6 +60,33 @@ export default function Navbar() {
       document.body.style.overflow = "unset";
     }
   }, [isMenuOpen]);
+
+  // Get active links based on authentication and user role
+  const getNavLinks = () => {
+    if (!user) {
+      return [
+        { to: "/", label: "Home" },
+        { to: "/about", label: "About" },
+      ];
+    }
+    if (user.role === "admin") {
+      return [
+        { to: "/admin-dashboard", label: "Admin Dashboard" },
+        { to: "/admin/users", label: "Manage Users" },
+        { to: "/reviews", label: "Reviews" },
+        { to: "/admin/analytics", label: "Analytics" },
+        { to: "/settings", label: "Settings" },
+      ];
+    }
+    return [
+      { to: "/dashboard", label: "Dashboard" },
+      { to: "/reviews", label: "Reviews" },
+      { to: "/analyze", label: "Analyze" },
+      { to: "/settings", label: "Settings" },
+    ];
+  };
+
+  const navLinks = getNavLinks();
 
   const desktopLinkStyle = ({ isActive }) =>
     `relative px-1 py-2 text-sm font-semibold transition-all duration-300 ease-in-out group ${
@@ -93,7 +130,7 @@ export default function Navbar() {
 
         {/* Desktop Nav Links */}
         <div className="hidden md:flex items-center gap-8" role="menubar">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <NavLink 
               key={link.to} 
               to={link.to} 
@@ -121,34 +158,91 @@ export default function Navbar() {
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
 
-          {/* Notifications Placeholder */}
-          <button
-            aria-label="Notifications"
-            className="p-2 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-white dark:border-slate-950 rounded-full"></span>
-          </button>
-
-          {/* Settings */}
-          <NavLink
-            to="/settings"
-            aria-label="Settings"
-            className="p-2 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            <Settings className="w-5 h-5" />
-          </NavLink>
+          {/* Notification Center - Only for logged in users */}
+          {user && <NotificationDropdown />}
 
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-2"></div>
 
-          {/* User Profile Avatar Placeholder */}
-          <NavLink
-            to="/login"
-            aria-label="User Profile"
-            className="flex items-center justify-center w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 hover:ring-2 hover:ring-indigo-500/50 hover:ring-offset-2 hover:ring-offset-white dark:hover:ring-offset-slate-950 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            <User className="w-4 h-4" />
-          </NavLink>
+          {/* Dynamic User Area (Dropdown / Login-Signup Buttons) */}
+          {user ? (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 px-1 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 overflow-hidden">
+                  {user.profileImage ? (
+                    <img src={user.profileImage} alt={user.fullName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold">{user.fullName.substring(0, 2).toUpperCase()}</span>
+                  )}
+                </div>
+                <ChevronDown className="w-4 h-4 text-slate-500" />
+              </button>
+
+              {/* Profile Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800/80">
+                    <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{user.fullName}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate mt-0.5">{user.email}</p>
+                    <div className="mt-1.5">
+                      {user.role === "admin" ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 uppercase tracking-wide">
+                          Administrator
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30 uppercase tracking-wide">
+                          User
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="py-1">
+                    <NavLink
+                      to="/settings"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </NavLink>
+                  </div>
+
+                  <div className="border-t border-slate-100 dark:border-slate-800/80 my-1"></div>
+
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors font-semibold cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <NavLink
+                to="/login"
+                className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                Sign In
+              </NavLink>
+              <NavLink
+                to="/signup"
+                className="flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/20"
+              >
+                Sign Up
+              </NavLink>
+            </div>
+          )}
         </div>
 
         {/* Mobile Hamburger & Actions */}
@@ -217,12 +311,29 @@ export default function Navbar() {
             </button>
           </div>
 
+          {/* Drawer Profile Info if logged in */}
+          {user && (
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 overflow-hidden">
+                {user.profileImage ? (
+                  <img src={user.profileImage} alt={user.fullName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm font-bold">{user.fullName.substring(0, 2).toUpperCase()}</span>
+                )}
+              </div>
+              <div className="overflow-hidden">
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 truncate">{user.fullName}</h4>
+                <p className="text-xs text-slate-400 truncate">{user.email}</p>
+              </div>
+            </div>
+          )}
+
           {/* Drawer Nav Links */}
           <nav className="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-2">
             <span className="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
               Navigation
             </span>
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <NavLink key={link.to} to={link.to} className={mobileLinkStyle}>
                 {link.label}
               </NavLink>
@@ -231,19 +342,39 @@ export default function Navbar() {
 
           {/* Drawer Footer Actions */}
           <div className="p-6 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50 flex flex-col gap-3">
-            <NavLink
-              to="/settings"
-              className="flex items-center justify-center px-4 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500/50 text-slate-700 dark:text-slate-200 font-bold text-sm transition-all shadow-sm gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              Settings
-            </NavLink>
-            <NavLink
-              to="/login"
-              className="flex items-center justify-center px-4 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/20"
-            >
-              Sign In
-            </NavLink>
+            {user ? (
+              <>
+                <NavLink
+                  to="/settings"
+                  className="flex items-center justify-center px-4 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500/50 text-slate-700 dark:text-slate-200 font-bold text-sm transition-all shadow-sm gap-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  Settings
+                </NavLink>
+                <button
+                  onClick={logout}
+                  className="flex items-center justify-center px-4 py-3.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 font-bold text-sm transition-all shadow-sm gap-2 cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <NavLink
+                  to="/login"
+                  className="flex items-center justify-center px-4 py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500/50 text-slate-700 dark:text-slate-200 font-bold text-sm transition-all shadow-sm"
+                >
+                  Sign In
+                </NavLink>
+                <NavLink
+                  to="/signup"
+                  className="flex items-center justify-center px-4 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/20"
+                >
+                  Sign Up
+                </NavLink>
+              </>
+            )}
           </div>
         </div>
       </div>
