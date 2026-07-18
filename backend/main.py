@@ -3,7 +3,7 @@
 from utils.env_loader import load_env
 load_env()
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -83,6 +83,11 @@ def home():
     return {
         "message": "AI Guest Review Analyzer API is running 🚀"
     }
+
+# Favicon Endpoint to avoid 404 log noise in browser
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return Response(status_code=204)
 
 # Register API Routes
 app.include_router(reviews_router)

@@ -3,6 +3,7 @@ import { Copy, Check, Sparkles, Hash, Tag, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AnalyzeResult({ result }) {
+  const isAIPowered = result?.aiPowered === true;
   const [copied, setCopied] = useState(false);
 
   if (!result) return null;
@@ -41,15 +42,24 @@ export default function AnalyzeResult({ result }) {
           </div>
           <div>
             <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Analysis Complete</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Data successfully extracted and processed</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              {isAIPowered ? 'Analyzed by Google Gemini AI' : 'Data successfully extracted and processed'}
+            </p>
           </div>
         </div>
         
         {/* Status Badge */}
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800 rounded-full text-xs font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-          Processed
-        </div>
+        {isAIPowered ? (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 dark:bg-indigo-500/10 rounded-full text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30">
+            <Sparkles className="w-3 h-3" />
+            Powered by Gemini AI
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800 rounded-full text-xs font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            Processed
+          </div>
+        )}
       </div>
 
       {/* Grid Data */}
@@ -95,7 +105,7 @@ export default function AnalyzeResult({ result }) {
       <div className="pt-6">
         <div className="flex justify-between items-center mb-3">
           <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            AI Suggested Reply
+            {isAIPowered ? '✨ AI Suggested Reply' : 'Suggested Reply'}
           </span>
           <button
             onClick={handleCopy}
