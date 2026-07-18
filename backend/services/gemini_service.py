@@ -32,13 +32,7 @@ def analyze_with_gemini(review_text: str) -> dict:
     genai.configure(api_key=api_key)
 
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        generation_config={
-            "temperature": 0.4,        # Slightly creative but mostly consistent
-            "top_p": 0.95,
-            "top_k": 40,
-            "max_output_tokens": 512,  # We only need a short JSON object
-        },
+        model_name="gemini-3.5-flash"
     )
 
     prompt = f"""You are an expert hospitality AI assistant. Analyze the following guest review and respond with ONLY a valid JSON object — no markdown, no code fences, no extra text.
