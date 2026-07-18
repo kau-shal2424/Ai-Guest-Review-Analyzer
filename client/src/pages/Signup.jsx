@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, ArrowRight, Eye, EyeOff, ChevronDown } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, Eye, EyeOff, ChevronDown, ArrowLeft } from "lucide-react";
 import { Button, Input, showError } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 
@@ -61,6 +61,15 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col relative overflow-hidden">
+      {/* Back to Home Navigation Button */}
+      <Link
+        to="/"
+        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm hover:shadow-md hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-600 dark:text-slate-400 font-semibold text-xs sm:text-sm transition-all duration-200"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Home
+      </Link>
+
       {/* Decorative ambient background blobs */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-violet-500/10 dark:bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />

@@ -1,18 +1,20 @@
 import os
 from datetime import timedelta
+import logging
 
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
-from dotenv import load_dotenv
 
+from utils.env_loader import load_env
 from services.auth_service import get_user_by_email, register_user
 from utils.auth import create_access_token
 
-load_dotenv(override=True)
+load_env()
 
 router = APIRouter(prefix="/api/auth", tags=["Google OAuth"])
 
+logger = logging.getLogger("uvicorn.error")
 
 # ==========================
 # OAuth Configuration
@@ -20,6 +22,22 @@ router = APIRouter(prefix="/api/auth", tags=["Google OAuth"])
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+# Diagnostic logging for Google OAuth config verification
+if not GOOGLE_CLIENT_ID:
+    logger.warning("GOOGLE_CLIENT_ID is not configured in .env!")
+else:
+    masked_id = GOOGLE_CLIENT_ID[:15] + "..." if len(GOOGLE_CLIENT_ID) > 15 else GOOGLE_CLIENT_ID
+    logger.info(f"Google OAuth: loaded client ID: {masked_id} (len={len(GOOGLE_CLIENT_ID)})")
+
+if not GOOGLE_CLIENT_SECRET:
+    logger.warning("GOOGLE_CLIENT_SECRET is not configured in .env!")
+else:
+    if GOOGLE_CLIENT_SECRET.startswith("GOCSPX-"):
+        masked_secret = "GOCSPX-******" + GOOGLE_CLIENT_SECRET[-4:]
+    else:
+        masked_secret = GOOGLE_CLIENT_SECRET[:4] + "******" + GOOGLE_CLIENT_SECRET[-4:]
+    logger.info(f"Google OAuth: loaded client secret: {masked_secret} (len={len(GOOGLE_CLIENT_SECRET)})")
 
 oauth = OAuth()
 oauth.register(
@@ -41,8 +59,17 @@ async def google_login(request: Request):
     """
     Redirect the user to Google's OAuth consent screen.
     """
-    redirect_uri = request.url_for("google_callback")
+    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI")
+    if not redirect_uri:
+        redirect_uri = str(request.url_for("google_callback"))
+        
+        # Behind reverse proxies (like Render), request.url_for might incorrectly use 'http' instead of 'https'.
+        # We can fix this by checking if the request was forwarded as https.
+        if request.headers.get("x-forwarded-proto") == "https":
+            redirect_uri = redirect_uri.replace("http://", "https://")
+            
     return await oauth.google.authorize_redirect(request, redirect_uri)
+
 
 
 # ==========================
@@ -54,14 +81,27 @@ async def google_callback(request: Request):
     Handle the OAuth callback from Google.
 
     Steps:
-    1. Exchange authorization code for tokens
-    2. Extract user info from Google
-    3. Create or find user in MongoDB
-    4. Generate JWT access token
-    5. Redirect to frontend with token
+    1. Check for authorization errors (e.g. user cancelled)
+    2. Exchange authorization code for tokens
+    3. Extract user info from Google
+    4. Create or find user in MongoDB
+    5. Generate JWT access token
+    6. Redirect to frontend with token
     """
-    token = await oauth.google.authorize_access_token(request)
-    user_info = token.get("userinfo")
+    # Handle google authentication errors (like user clicked cancel)
+    error_param = request.query_params.get("error")
+    if error_param:
+        import logging
+        logging.getLogger("uvicorn.error").warning(f"Google auth error returned: {error_param}")
+        return RedirectResponse(f"{FRONTEND_URL}/login?error={error_param}")
+
+    try:
+        token = await oauth.google.authorize_access_token(request)
+        user_info = token.get("userinfo")
+    except Exception as e:
+        import logging
+        logging.getLogger("uvicorn.error").error(f"Google authorization token exchange failed: {e}", exc_info=True)
+        return RedirectResponse(f"{FRONTEND_URL}/login?error=auth_cancelled_or_failed")
 
     if not user_info:
         return RedirectResponse(f"{FRONTEND_URL}/login?error=google_auth_failed")

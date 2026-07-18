@@ -1,18 +1,37 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Mail, Lock, ArrowRight, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Button, Input, showError } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
   const { login, token, user } = useAuth();
+  const [searchParams] = useSearchParams();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  // Check for error parameters in the URL (e.g. from Google OAuth callback)
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      if (errorParam === "access_denied") {
+        setError("Google authentication was denied or cancelled.");
+      } else if (errorParam === "auth_cancelled_or_failed") {
+        setError("Google login was cancelled or failed to complete.");
+      } else if (errorParam === "google_auth_failed") {
+        setError("Could not retrieve user info from Google. Please try again.");
+      } else {
+        setError("Authentication failed. Please check your credentials or try again.");
+      }
+    }
+  }, [searchParams]);
 
   // If already logged in, redirect to appropriate dashboard based on role
   useEffect(() => {
@@ -27,10 +46,26 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError("Please fill in all fields");
+    let hasError = false;
+
+    if (!email) {
+      setEmailError("Email is required");
+      hasError = true;
+    } else {
+      setEmailError("");
+    }
+
+    if (!password) {
+      setPasswordError("Password is required");
+      hasError = true;
+    } else {
+      setPasswordError("");
+    }
+
+    if (hasError) {
       return;
     }
+
     setError("");
     setIsLoading(true);
 
@@ -47,6 +82,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col relative overflow-hidden">
+      {/* Back to Home Navigation Button */}
+      <Link
+        to="/"
+        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm hover:shadow-md hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-600 dark:text-slate-400 font-semibold text-xs sm:text-sm transition-all duration-200"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Home
+      </Link>
+
       {/* Decorative ambient background blobs */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-violet-500/10 dark:bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -68,9 +112,12 @@ export default function Login() {
               label="Email Address"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError("");
+              }}
               leftIcon={<Mail className="w-4 h-4" />}
-              error={error && !email ? "Email is required" : ""}
+              error={emailError}
             />
 
             <Input
@@ -78,7 +125,10 @@ export default function Login() {
               label="Password"
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) setPasswordError("");
+              }}
               leftIcon={<Lock className="w-4 h-4" />}
               rightIcon={
                 <button
@@ -93,7 +143,7 @@ export default function Login() {
                   )}
                 </button>
               }
-              error={error && !password ? "Password is required" : ""}
+              error={passwordError}
             />
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
