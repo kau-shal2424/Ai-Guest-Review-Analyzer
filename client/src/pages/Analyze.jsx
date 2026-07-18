@@ -3,6 +3,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import AnalyzeInput from "../components/analyze/AnalyzeInput";
 import AnalyzeResult from "../components/analyze/AnalyzeResult";
+import AiLoadingAnimation from "../components/analyze/AiLoadingAnimation";
 import { Sparkles } from "lucide-react";
 
 export default function Analyze() {
@@ -64,15 +65,7 @@ export default function Analyze() {
 
         {/* Loading AI State */}
         {loading && (
-          <div className="mt-8 flex flex-col items-center justify-center p-12 animate-in fade-in duration-300">
-            <div className="relative">
-              <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 animate-pulse rounded-full"></div>
-              <Sparkles className="w-10 h-10 text-indigo-500 animate-bounce relative z-10" />
-            </div>
-            <p className="mt-4 text-slate-500 dark:text-slate-400 font-medium animate-pulse">
-              AI is analyzing your review...
-            </p>
-          </div>
+          <AiLoadingAnimation />
         )}
 
         {/* Result Component */}
