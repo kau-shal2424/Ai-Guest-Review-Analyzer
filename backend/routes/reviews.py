@@ -35,6 +35,27 @@ def perform_analysis(review_text: str) -> dict:
         response_message = gemini_result["response"]
         ai_powered = True
         logger.info("Review analyzed using Google Gemini AI.")
+        return {
+            "sentiment": sentiment,
+            "theme": theme,
+            "response": response_message,
+            "aiPowered": ai_powered,
+            "overall_score": gemini_result.get("overall_score", 75),
+            "confidence": gemini_result.get("confidence", 80),
+            "emotion": gemini_result.get("emotion", "Neutral"),
+            "detected_rating": gemini_result.get("detected_rating", 3),
+            "summary": gemini_result.get("summary", ""),
+            "pros": gemini_result.get("pros", []),
+            "cons": gemini_result.get("cons", []),
+            "pain_points": gemini_result.get("pain_points", []),
+            "business_impact": gemini_result.get("business_impact", ""),
+            "priority_level": gemini_result.get("priority_level", "Medium"),
+            "expectations": gemini_result.get("expectations", []),
+            "action_items": gemini_result.get("action_items", []),
+            "keywords": gemini_result.get("keywords", []),
+            "departments": gemini_result.get("departments", []),
+            "reply": gemini_result.get("reply", response_message)
+        }
     except Exception as gemini_error:
         logger.warning(f"Gemini AI unavailable, using keyword fallback. Reason: {gemini_error}")
 
@@ -60,12 +81,32 @@ def perform_analysis(review_text: str) -> dict:
 
         response_message = "Thank you for your valuable feedback."
 
-    return {
-        "sentiment": sentiment,
-        "theme": theme,
-        "response": response_message,
-        "aiPowered": ai_powered
-    }
+        overall_score = 75 if sentiment == "Neutral" else (92 if sentiment == "Positive" else 34)
+        priority_level = "Medium" if sentiment == "Neutral" else ("Low" if sentiment == "Positive" else "High")
+        emotion = "Neutral" if sentiment == "Neutral" else ("Appreciative" if sentiment == "Positive" else "Frustrated")
+        detected_rating = 3 if sentiment == "Neutral" else (5 if sentiment == "Positive" else 1)
+
+        return {
+            "sentiment": sentiment,
+            "theme": theme,
+            "response": response_message,
+            "aiPowered": ai_powered,
+            "overall_score": overall_score,
+            "confidence": 60,
+            "emotion": emotion,
+            "detected_rating": detected_rating,
+            "summary": "Processed via local keyword analysis.",
+            "pros": ["The room was clean and well-maintained."] if theme == "Cleanliness" else ["Good experience."],
+            "cons": [],
+            "pain_points": ["N/A"],
+            "business_impact": "Neutral brand impact.",
+            "priority_level": priority_level,
+            "expectations": ["Expected a clean and comfortable lodging experience."],
+            "action_items": ["Continue checking cleanliness standard levels regularly."],
+            "keywords": [theme.lower()],
+            "departments": [theme],
+            "reply": response_message
+        }
 
 router = APIRouter(prefix="/api", tags=["Reviews"])
 
@@ -146,6 +187,21 @@ def add_review(review: Review, current_user: dict = Depends(get_current_user)):
         "response": analysis["response"],
         "userId": current_user["_id"],
         "aiPowered": analysis["aiPowered"],
+        "overall_score": analysis.get("overall_score"),
+        "confidence": analysis.get("confidence"),
+        "emotion": analysis.get("emotion"),
+        "detected_rating": analysis.get("detected_rating"),
+        "summary": analysis.get("summary"),
+        "pros": analysis.get("pros"),
+        "cons": analysis.get("cons"),
+        "pain_points": analysis.get("pain_points"),
+        "business_impact": analysis.get("business_impact"),
+        "priority_level": analysis.get("priority_level"),
+        "expectations": analysis.get("expectations"),
+        "action_items": analysis.get("action_items"),
+        "keywords": analysis.get("keywords"),
+        "departments": analysis.get("departments"),
+        "reply": analysis.get("reply"),
     }
     review_id = save_analyzed_review(review_data)
     return {
@@ -182,6 +238,21 @@ def edit_review(review_id: str, review: Review, current_user: dict = Depends(get
         "theme": analysis["theme"],
         "response": analysis["response"],
         "aiPowered": analysis["aiPowered"],
+        "overall_score": analysis.get("overall_score"),
+        "confidence": analysis.get("confidence"),
+        "emotion": analysis.get("emotion"),
+        "detected_rating": analysis.get("detected_rating"),
+        "summary": analysis.get("summary"),
+        "pros": analysis.get("pros"),
+        "cons": analysis.get("cons"),
+        "pain_points": analysis.get("pain_points"),
+        "business_impact": analysis.get("business_impact"),
+        "priority_level": analysis.get("priority_level"),
+        "expectations": analysis.get("expectations"),
+        "action_items": analysis.get("action_items"),
+        "keywords": analysis.get("keywords"),
+        "departments": analysis.get("departments"),
+        "reply": analysis.get("reply"),
         "updatedAt": datetime.utcnow().isoformat()
     }
 
@@ -251,6 +322,21 @@ def analyze_review(data: AnalyzeRequest, current_user: dict = Depends(get_curren
         "response": analysis["response"],
         "userId": current_user["_id"],
         "aiPowered": analysis["aiPowered"],
+        "overall_score": analysis.get("overall_score"),
+        "confidence": analysis.get("confidence"),
+        "emotion": analysis.get("emotion"),
+        "detected_rating": analysis.get("detected_rating"),
+        "summary": analysis.get("summary"),
+        "pros": analysis.get("pros"),
+        "cons": analysis.get("cons"),
+        "pain_points": analysis.get("pain_points"),
+        "business_impact": analysis.get("business_impact"),
+        "priority_level": analysis.get("priority_level"),
+        "expectations": analysis.get("expectations"),
+        "action_items": analysis.get("action_items"),
+        "keywords": analysis.get("keywords"),
+        "departments": analysis.get("departments"),
+        "reply": analysis.get("reply"),
     }
 
     review_id = save_analyzed_review(review_data)

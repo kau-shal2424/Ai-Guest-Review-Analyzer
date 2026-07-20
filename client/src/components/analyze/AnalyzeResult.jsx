@@ -23,74 +23,95 @@ export default function AnalyzeResult({ result }) {
     const theme = result.theme || "Experience";
 
     // 1. Overall Score & Rating Map
-    let overallScore = 75;
-    let ratingStars = 3;
-    let priority = "Medium";
+    let overallScore = typeof result.overall_score === 'number' ? result.overall_score : 75;
+    let ratingStars = typeof result.detected_rating === 'number' ? result.detected_rating : 3;
+    let priority = result.priority_level || "Medium";
     let priorityColor = "warning";
 
-    if (sentiment === 'Positive') {
-      overallScore = 92;
-      ratingStars = 5;
-      priority = "Low";
-      priorityColor = "success";
-    } else if (sentiment === 'Negative') {
-      overallScore = 34;
-      ratingStars = 1;
-      priority = "High";
-      priorityColor = "danger";
+    if (result.overall_score === undefined) {
+      if (sentiment === 'Positive') {
+        overallScore = 92;
+        ratingStars = 5;
+        priority = "Low";
+      } else if (sentiment === 'Negative') {
+        overallScore = 34;
+        ratingStars = 1;
+        priority = "High";
+      }
     }
 
+    if (priority === "Low") priorityColor = "success";
+    else if (priority === "High" || priority === "Danger") priorityColor = "danger";
+    else priorityColor = "warning";
+
     // 2. Emotion Tagging
-    let dominantEmotion = "Neutral";
-    let emotionPercent = 60;
-    if (sentiment === 'Positive') {
-      dominantEmotion = "Appreciative";
-      emotionPercent = 94;
-    } else if (sentiment === 'Negative') {
-      dominantEmotion = "Frustrated";
-      emotionPercent = 88;
-    } else if (lower.includes("clean")) {
-      dominantEmotion = "Satisfied";
-      emotionPercent = 80;
+    let dominantEmotion = result.emotion || "Neutral";
+    let emotionPercent = typeof result.confidence === 'number' ? result.confidence : 60;
+    if (result.emotion === undefined) {
+      if (sentiment === 'Positive') {
+        dominantEmotion = "Appreciative";
+        emotionPercent = 94;
+      } else if (sentiment === 'Negative') {
+        dominantEmotion = "Frustrated";
+        emotionPercent = 88;
+      } else if (lower.includes("clean")) {
+        dominantEmotion = "Satisfied";
+        emotionPercent = 80;
+      }
     }
 
     // 3. Highlights & Expectations Mappings
-    let positiveHighlights = ["The room was clean and well-maintained."];
-    let negativeHighlights = [];
+    let positiveHighlights = Array.isArray(result.pros) && result.pros.length > 0 ? result.pros : ["The room was clean and well-maintained."];
+    let negativeHighlights = Array.isArray(result.cons) ? result.cons : [];
+    
     let guestExpectations = "Expected a clean and comfortable lodging experience.";
+    if (Array.isArray(result.expectations) && result.expectations.length > 0) {
+      guestExpectations = result.expectations.join(", ");
+    } else if (result.expectations && typeof result.expectations === 'string') {
+      guestExpectations = result.expectations;
+    }
+    
     let painPoints = "N/A";
-    let businessImpact = "Neutral brand impact.";
-    let improvements = ["Continue checking cleanliness standard levels regularly."];
+    if (Array.isArray(result.pain_points) && result.pain_points.length > 0) {
+      painPoints = result.pain_points.join(", ");
+    } else if (result.pain_points && typeof result.pain_points === 'string') {
+      painPoints = result.pain_points;
+    }
 
-    if (theme === 'Cleanliness') {
-      if (sentiment === 'Positive') {
-        positiveHighlights = ["Spotless guest room", "Excellent housekeeping standard"];
-        improvements = ["Maintain active cleaning frequency", "Reward current housekeeping crew"];
-        businessImpact = "Positive reputation enhancement, repeat guest potential.";
-      } else {
-        negativeHighlights = ["Cleanliness levels below expectations", "Room stains or odor issues"];
-        painPoints = "Housekeeping hygiene checks failed.";
-        improvements = ["Relaunch deep cleaning audit", "Update room validation lists"];
-        businessImpact = "Risk of guest dissatisfaction, bad OTA reviews.";
-      }
-    } else if (theme === 'Host') {
-      guestExpectations = "Expected welcoming, professional interaction from staff.";
-      if (sentiment === 'Positive') {
-        positiveHighlights = ["Friendly customer care", "Helpful hospitality staff"];
-        improvements = ["Encourage current front desk agents", "Share positive feedback with staff"];
-      } else {
-        negativeHighlights = ["Rude interactions from staff", "Slow reception desks"];
-        painPoints = "Front desk hospitality training gap.";
-        improvements = ["Conduct hospitality training sessions", "Perform desk service reviews"];
-      }
-    } else if (theme === 'Food') {
-      guestExpectations = "Expected fresh, high-quality dining options.";
-      if (sentiment === 'Positive') {
-        positiveHighlights = ["Delicious breakfast menu", "Quick restaurant service"];
-      } else {
-        negativeHighlights = ["Cold dishes served", "Limited breakfast buffet"];
-        painPoints = "Buffet food temperature control.";
-        improvements = ["Audit kitchen food line temperature", "Refresh dining options"];
+    let businessImpact = result.business_impact || "Neutral brand impact.";
+    let improvements = Array.isArray(result.action_items) && result.action_items.length > 0 ? result.action_items : ["Continue checking cleanliness standard levels regularly."];
+
+    if (result.overall_score === undefined) {
+      if (theme === 'Cleanliness') {
+        if (sentiment === 'Positive') {
+          positiveHighlights = ["Spotless guest room", "Excellent housekeeping standard"];
+          improvements = ["Maintain active cleaning frequency", "Reward current housekeeping crew"];
+          businessImpact = "Positive reputation enhancement, repeat guest potential.";
+        } else {
+          negativeHighlights = ["Cleanliness levels below expectations", "Room stains or odor issues"];
+          painPoints = "Housekeeping hygiene checks failed.";
+          improvements = ["Relaunch deep cleaning audit", "Update room validation lists"];
+          businessImpact = "Risk of guest dissatisfaction, bad OTA reviews.";
+        }
+      } else if (theme === 'Host') {
+        guestExpectations = "Expected welcoming, professional interaction from staff.";
+        if (sentiment === 'Positive') {
+          positiveHighlights = ["Friendly customer care", "Helpful hospitality staff"];
+          improvements = ["Encourage current front desk agents", "Share positive feedback with staff"];
+        } else {
+          negativeHighlights = ["Rude interactions from staff", "Slow reception desks"];
+          painPoints = "Front desk hospitality training gap.";
+          improvements = ["Conduct hospitality training sessions", "Perform desk service reviews"];
+        }
+      } else if (theme === 'Food') {
+        guestExpectations = "Expected fresh, high-quality dining options.";
+        if (sentiment === 'Positive') {
+          positiveHighlights = ["Delicious breakfast menu", "Quick restaurant service"];
+        } else {
+          negativeHighlights = ["Cold dishes served", "Limited breakfast buffet"];
+          painPoints = "Buffet food temperature control.";
+          improvements = ["Audit kitchen food line temperature", "Refresh dining options"];
+        }
       }
     }
 

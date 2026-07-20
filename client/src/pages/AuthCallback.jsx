@@ -23,7 +23,11 @@ export default function AuthCallback() {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(parsedUser));
         showSuccess("Successfully logged in with Google!");
-        navigate("/dashboard", { replace: true });
+        if (parsedUser.role === "admin") {
+          navigate("/admin/dashboard", { replace: true });
+        } else {
+          navigate("/user/dashboard", { replace: true });
+        }
       } catch {
         showError("Authentication error. Please try again.");
         navigate("/login", { replace: true });

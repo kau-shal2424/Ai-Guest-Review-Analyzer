@@ -4,14 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, LayoutDashboard, Sparkles, BookOpen, Brain, BarChart3, Settings, User, HelpCircle, X } from 'lucide-react';
 
 const COMMANDS = [
-  { id: 'dashboard', icon: LayoutDashboard, label: 'Go to Dashboard', to: '/dashboard', category: 'Navigate' },
-  { id: 'analyze', icon: Sparkles, label: 'Analyze a Review', to: '/analyze', category: 'Navigate' },
-  { id: 'reviews', icon: BookOpen, label: 'My Reviews', to: '/reviews', category: 'Navigate' },
-  { id: 'insights', icon: Brain, label: 'AI Insights', to: '/insights', category: 'Navigate' },
-  { id: 'reports', icon: BarChart3, label: 'Reports', to: '/reports', category: 'Navigate' },
-  { id: 'settings', icon: Settings, label: 'Settings', to: '/settings', category: 'Account' },
-  { id: 'profile', icon: User, label: 'Profile', to: '/profile', category: 'Account' },
-  { id: 'help', icon: HelpCircle, label: 'Help Center', to: '/help', category: 'Support' },
+  { id: 'dashboard', icon: LayoutDashboard, label: 'Go to Dashboard', to: '/user/dashboard', category: 'Navigate' },
+  { id: 'analyze', icon: Sparkles, label: 'Analyze a Review', to: '/user/analyze', category: 'Navigate' },
+  { id: 'reviews', icon: BookOpen, label: 'My Reviews', to: '/user/reviews', category: 'Navigate' },
+  { id: 'insights', icon: Brain, label: 'AI Insights', to: '/user/insights', category: 'Navigate' },
+  { id: 'reports', icon: BarChart3, label: 'Reports', to: '/user/reports', category: 'Navigate' },
+  { id: 'settings', icon: Settings, label: 'Settings', to: '/user/settings', category: 'Account' },
+  { id: 'profile', icon: User, label: 'Profile', to: '/user/profile', category: 'Account' },
+  { id: 'help', icon: HelpCircle, label: 'Help Center', to: '/user/help', category: 'Support' },
 ];
 
 export default function CommandPalette({ open, onClose }) {

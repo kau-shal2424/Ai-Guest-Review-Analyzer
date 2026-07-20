@@ -63,9 +63,9 @@ export const AuthProvider = ({ children }) => {
       
       // Role-based redirect
       if (loggedUser.role === "admin") {
-        navigate("/admin-dashboard");
+        navigate("/admin/dashboard");
       } else {
-        navigate("/dashboard");
+        navigate("/user/dashboard");
       }
     } catch (err) {
       const msg = err.response?.data?.detail || "Login failed. Please check your credentials.";
