@@ -1,10 +1,11 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import AnalyzeInput from "../../components/analyze/AnalyzeInput";
 import AnalyzeResult from "../../components/analyze/AnalyzeResult";
 import AiLoadingAnimation from "../../components/analyze/AiLoadingAnimation";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Brain, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Analyze() {
   const [review, setReview] = useState("");
@@ -37,24 +38,30 @@ export default function Analyze() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-24">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans"
+    >
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
         {/* Header Section */}
-        <div className="text-center mb-10 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="inline-flex items-center justify-center p-3 bg-indigo-100 dark:bg-indigo-500/10 rounded-2xl mb-4 text-indigo-600 dark:text-indigo-400">
-            <Sparkles className="w-8 h-8" />
+        <div className="text-center mb-10 max-w-3xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-extrabold uppercase tracking-wider">
+            <Brain className="w-4 h-4 text-purple-500" />
+            <span>Gemini AI Sentiment & Response Studio</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
             AI Review Analyzer
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-lg">
-            Paste any guest feedback below. Our AI will instantly extract sentiment, identify core themes, and draft a professional response.
+          <p className="text-slate-500 dark:text-slate-400 text-base sm:text-lg font-medium leading-relaxed">
+            Paste or record guest feedback. Our neural engine extracts sentiment scores, root-cause operational themes, and drafts brand-compliant responses instantly.
           </p>
         </div>
 
         {/* Input Component */}
-        <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150 fill-mode-both">
+        <div>
           <AnalyzeInput 
             review={review}
             setReview={setReview}
@@ -65,15 +72,19 @@ export default function Analyze() {
 
         {/* Loading AI State */}
         {loading && (
-          <AiLoadingAnimation />
+          <div className="mt-8">
+            <AiLoadingAnimation />
+          </div>
         )}
 
         {/* Result Component */}
         {!loading && result && (
-          <AnalyzeResult result={result} />
+          <div className="mt-8">
+            <AnalyzeResult result={result} />
+          </div>
         )}
 
       </main>
-    </div>
+    </motion.div>
   );
 }

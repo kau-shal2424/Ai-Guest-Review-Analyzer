@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   User, Bell, Sun, Moon, Monitor, Shield, Trash2, Save,
   Check, Lock, Mail, Phone, LogOut, ArrowLeft, ShieldAlert
@@ -149,7 +149,7 @@ export default function Settings() {
   }, []);
 
   // Sync theme selection to server and local context
-  const handleThemeSelect = async (value) => {
+  const handleThemeSelect = useCallback(async (value) => {
     setLocalTheme(value);
     if (value === "light") setLightTheme();
     else if (value === "dark") setDarkTheme();
@@ -162,10 +162,10 @@ export default function Settings() {
     } catch {
       // ignore silent sync errors
     }
-  };
+  }, [setLightTheme, setDarkTheme]);
 
   // Update specific notification toggle
-  const handleNotifToggle = async (key, val) => {
+  const handleNotifToggle = useCallback(async (key, val) => {
     const updated = { ...notifPrefs, [key]: val };
     setNotifPrefs(updated);
     try {
@@ -173,10 +173,10 @@ export default function Settings() {
     } catch {
       showError("Failed to save notification preferences to server.");
     }
-  };
+  }, [notifPrefs]);
 
   // Profile save handler
-  const handleSaveProfile = async (e) => {
+  const handleSaveProfile = useCallback(async (e) => {
     e.preventDefault();
     if (!name.trim()) {
       showError("Full name is required.");
@@ -195,7 +195,7 @@ export default function Settings() {
     } finally {
       setIsSavingProfile(false);
     }
-  };
+  }, [name, phone, bio]);
 
   // Password change handler
   const handlePasswordChange = async (e) => {
@@ -232,7 +232,7 @@ export default function Settings() {
   };
 
   // Delete account handler
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = useCallback(async () => {
     setIsDeleting(true);
     try {
       await deleteAccount();
@@ -243,7 +243,7 @@ export default function Settings() {
       setIsDeleting(false);
       setShowDeleteModal(false);
     }
-  };
+  }, [logout]);
 
   const themeOptions = [
     { value: "light", label: "Light", icon: <Sun className="w-4 h-4" /> },

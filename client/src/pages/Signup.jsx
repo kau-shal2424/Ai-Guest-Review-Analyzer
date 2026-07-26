@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, ArrowRight, Eye, EyeOff, ChevronDown, ArrowLeft } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, Eye, EyeOff, ChevronDown, ArrowLeft, Building2 } from "lucide-react";
 import { Button, Input, showError } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
+import { motion } from "framer-motion";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function Signup() {
   // Redirect if already authenticated
   useEffect(() => {
     if (token) {
-      navigate("/dashboard");
+      navigate("/user/dashboard");
     }
   }, [token, navigate]);
 
@@ -50,7 +51,6 @@ export default function Signup() {
 
     try {
       await register(name, email, password, confirmPassword, role);
-      // AuthContext handles navigate to login on success
     } catch (err) {
       const errorMsg = err.response?.data?.detail || "Registration failed. Please try again.";
       setError(errorMsg);
@@ -60,49 +60,64 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col relative overflow-hidden">
-      {/* Back to Home Navigation Button */}
-      <Link
-        to="/"
-        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm hover:shadow-md hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-600 dark:text-slate-400 font-semibold text-xs sm:text-sm transition-all duration-200"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Home
-      </Link>
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between relative overflow-hidden font-sans">
+      {/* Background ambient lighting */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px]" />
+      </div>
 
-      {/* Decorative ambient background blobs */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-violet-500/10 dark:bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Top Header Bar */}
+      <header className="relative z-20 px-6 py-6 flex items-center justify-between max-w-7xl mx-auto w-full">
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-slate-300 hover:text-white text-xs font-bold uppercase tracking-wider transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Platform
+        </Link>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-black text-sm">
+            R
+          </div>
+          <span className="font-extrabold text-sm tracking-tight text-white">ReviewAI</span>
+        </div>
+      </header>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 md:py-12 lg:px-8 z-10">
-        <div className="w-full max-w-md bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-xl px-5 py-8 sm:p-8 md:p-10 transition-all duration-300 hover:shadow-2xl">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+      {/* Form Container */}
+      <main className="flex-1 flex items-center justify-center px-4 py-8 z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl shadow-blue-500/10 backdrop-blur-2xl space-y-6"
+        >
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
               Create Account
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">
-              Start analyzing reviews in seconds
+            </h1>
+            <p className="text-xs text-slate-400 font-medium">
+              Join enterprise hospitality teams using ReviewAI
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="space-y-4 text-left">
             <Input
               type="text"
               label="Full Name"
-              placeholder="John Doe"
+              placeholder="Elena Vance"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              leftIcon={<User className="w-4 h-4" />}
+              leftIcon={<User className="w-4 h-4 text-slate-400" />}
               error={error && !name ? "Name is required" : ""}
             />
 
             <Input
               type="email"
-              label="Email Address"
-              placeholder="you@example.com"
+              label="Work Email"
+              placeholder="elena@luxuryresorts.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              leftIcon={<Mail className="w-4 h-4" />}
+              leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
               error={error && !email ? "Email is required" : ""}
             />
 
@@ -112,18 +127,14 @@ export default function Signup() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              leftIcon={<Lock className="w-4 h-4" />}
+              leftIcon={<Lock className="w-4 h-4 text-slate-400" />}
               rightIcon={
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer flex items-center justify-center"
+                  className="text-slate-400 hover:text-white transition-colors"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               }
               error={error && !password ? "Password is required" : ""}
@@ -135,61 +146,45 @@ export default function Signup() {
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              leftIcon={<Lock className="w-4 h-4" />}
+              leftIcon={<Lock className="w-4 h-4 text-slate-400" />}
               error={error && !confirmPassword ? "Confirm password is required" : ""}
             />
 
-            {/* Account Type (Role Selection Dropdown) */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Account Type
+            {/* Account Type / Role Dropdown */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Account License Type
               </label>
               <div className="relative">
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:text-slate-100 transition-all cursor-pointer appearance-none"
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-200 cursor-pointer appearance-none"
                 >
-                  <option value="user">User (Standard Account)</option>
-                  <option value="admin">Admin (System Manager)</option>
+                  <option value="user">Hotel Manager / Analyst (User)</option>
+                  <option value="admin">System Administrator (Admin)</option>
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-500 dark:text-slate-400">
-                  <ChevronDown className="w-4.5 h-4.5" />
+                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
+                  <ChevronDown className="w-4 h-4" />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-start gap-2 text-xs mt-1">
+            <div className="flex items-start gap-2.5 text-xs pt-1">
               <input
                 id="terms"
                 type="checkbox"
                 checked={agree}
                 onChange={(e) => setAgree(e.target.checked)}
-                className="mt-0.5 rounded border-slate-300 dark:border-slate-800 text-indigo-600 focus:ring-indigo-500 bg-white dark:bg-slate-950 cursor-pointer"
+                className="mt-0.5 rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500 cursor-pointer"
               />
-              <label
-                htmlFor="terms"
-                className="font-medium text-slate-600 dark:text-slate-400 cursor-pointer leading-normal"
-              >
-                I agree to the{" "}
-                <a
-                  href="#"
-                  className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-                >
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a
-                  href="#"
-                  className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-                >
-                  Privacy Policy
-                </a>
+              <label htmlFor="terms" className="font-medium text-slate-400 leading-snug cursor-pointer">
+                I agree to the <a href="#" className="font-bold text-blue-400 hover:underline">Terms of Service</a> and <a href="#" className="font-bold text-blue-400 hover:underline">Privacy Policy</a>
               </label>
             </div>
 
             {error && (
-              <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 text-center">
+              <p className="text-xs font-bold text-rose-400 text-center bg-rose-500/10 border border-rose-500/20 py-2 rounded-xl">
                 {error}
               </p>
             )}
@@ -199,23 +194,24 @@ export default function Signup() {
               variant="primary"
               isLoading={isLoading}
               rightIcon={<ArrowRight className="w-4 h-4" />}
-              className="w-full mt-2"
+              className="w-full py-3.5 mt-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/25 transition-all"
             >
-              Sign Up
+              Create Account
             </Button>
           </form>
 
-          <p className="text-center text-sm font-medium text-slate-500 dark:text-slate-400 mt-8">
+          <p className="text-center text-xs font-semibold text-slate-400 pt-2">
             Already have an account?{" "}
-            <Link
-              to="/login"
-              className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
-            >
-              Log in
+            <Link to="/login" className="font-bold text-blue-400 hover:underline">
+              Sign In
             </Link>
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </main>
+
+      <footer className="relative z-20 px-6 py-4 text-center text-[11px] text-slate-500 font-semibold">
+        <span>Protected by SOC-2 Security Protocol · ReviewAI OS Inc.</span>
+      </footer>
     </div>
   );
 }

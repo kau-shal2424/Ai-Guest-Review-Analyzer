@@ -1,4 +1,5 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useReviews } from '../hooks/useReviews';
 import { Card, Badge, Progress, Skeleton } from '../../components/ui';
 import { 
@@ -20,11 +21,11 @@ export default function AIInsights() {
       return {
         posRate: 0,
         radarData: [],
-        praises: ["N/A"],
-        complaints: ["N/A"],
-        weeklySummary: "Gathering more reviews data to generate weekly summaries.",
-        monthlySummary: "Gathering more reviews data to generate monthly summaries.",
-        recommendations: ["Create an analysis list to get custom suggestions."],
+        praises: [],
+        complaints: [],
+        weeklySummary: "",
+        monthlySummary: "",
+        recommendations: [],
         topKeywords: [],
         mostImproved: "N/A",
         leastPerforming: "N/A"
@@ -143,6 +144,36 @@ export default function AIInsights() {
           <Skeleton className="h-64" />
           <Skeleton className="h-64 lg:col-span-2" />
         </div>
+      </div>
+    );
+  }
+
+  if (!reviews || reviews.length === 0) {
+    return (
+      <div className="space-y-8 max-w-7xl mx-auto">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight mb-2">AI Insights</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-[15px] font-medium">
+            Deep customer intelligence dynamically derived from your guest reviews.
+          </p>
+        </div>
+
+        <Card className="p-12 text-center max-w-2xl mx-auto border-dashed border-2 flex flex-col items-center gap-4">
+          <div className="p-4 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-3xl">
+            <Brain className="w-12 h-12" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">No AI Insights Available Yet</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md font-medium">
+            Analyze your first guest review to unlock dynamic sentiment trends, radar profiles, topic distribution, and AI-powered recommendations.
+          </p>
+          <Link
+            to="/user/analyze"
+            className="mt-2 inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl shadow-lg transition-all active:scale-95 text-sm"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Analyze Your First Review</span>
+          </Link>
+        </Card>
       </div>
     );
   }

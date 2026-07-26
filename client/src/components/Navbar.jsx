@@ -108,24 +108,29 @@ export default function Navbar() {
         aria-label="Main Navigation"
         className={`sticky top-0 z-40 transition-all duration-300 ${
           scrolled 
-            ? "bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/80 shadow-sm" 
-            : "bg-white/50 dark:bg-slate-950/50 backdrop-blur-md border-b border-transparent"
+            ? "bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/80 shadow-sm" 
+            : "bg-white/40 dark:bg-slate-950/40 backdrop-blur-md border-b border-slate-200/20 dark:border-slate-800/20"
         } px-5 md:px-8 py-3.5 flex justify-between items-center`}
       >
-        {/* Logo */}
+        {/* Brand Logo */}
         <NavLink
           to="/"
           aria-label="Home"
-          className="text-lg md:text-xl font-black tracking-tight flex items-center gap-2 hover:opacity-90 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg"
+          className="text-lg md:text-xl font-black tracking-tight flex items-center gap-2.5 hover:opacity-95 transition-opacity flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-xl"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 ring-1 ring-white/20">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <span className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 text-transparent bg-clip-text hidden sm:block">
-            Review Analyzer
-          </span>
+          <div className="flex flex-col">
+            <span className="font-extrabold tracking-tight text-slate-900 dark:text-white leading-none text-base sm:text-lg">
+              ReviewAI
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
+              Hospitality OS
+            </span>
+          </div>
         </NavLink>
 
         {/* Desktop Nav Links */}
@@ -140,7 +145,7 @@ export default function Navbar() {
               {({ isActive }) => (
                 <>
                   {link.label}
-                  <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full transition-transform origin-left duration-300 ${isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
+                  <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full transition-transform origin-left duration-300 ${isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
                 </>
               )}
             </NavLink>

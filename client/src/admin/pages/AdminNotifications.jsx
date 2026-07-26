@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 export default function AdminNotifications() {
   const { notifications, unreadCount, loading, markRead, markAllAsRead, remove } = useNotifications();
   const [filter, setFilter] = useState('all');
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const filtered = useMemo(() => {
     if (filter === 'unread') return notifications.filter(n => !n.read);
@@ -111,7 +112,7 @@ export default function AdminNotifications() {
                   </button>
                 )}
                 <button
-                  onClick={() => remove(n._id)}
+                  onClick={() => setDeleteTarget(n)}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                   title="Delete"
                 >
@@ -120,6 +121,37 @@ export default function AdminNotifications() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} />
+          <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 space-y-4 z-10">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Delete Notification</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Are you sure you want to delete this admin notification? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <button 
+                onClick={() => setDeleteTarget(null)} 
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  await remove(deleteTarget._id);
+                  setDeleteTarget(null);
+                  toast.success("Notification deleted.");
+                }} 
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-sm font-bold text-white transition-colors cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

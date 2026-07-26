@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo, memo } from "react";
 import axios from "axios";
 import {
   Trash2, Shield, Users, Check, X, ArrowLeft, Search,
@@ -11,7 +11,7 @@ import Loader from '../../components/ui/Loader';
 const API = import.meta.env.VITE_API_BASE_URL;
 
 // ─── Confirmation Modal ───
-function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, danger = true }) {
+const ConfirmModal = memo(function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, danger = true }) {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -32,10 +32,10 @@ function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, danger = tr
       </div>
     </div>
   );
-}
+});
 
 // ─── Edit Modal ───
-function EditModal({ user, onClose, onSave }) {
+const EditModal = memo(function EditModal({ user, onClose, onSave }) {
   const [name, setName] = useState(user.fullName || "");
   const [loading, setLoading] = useState(false);
 
@@ -81,10 +81,10 @@ function EditModal({ user, onClose, onSave }) {
       </div>
     </div>
   );
-}
+});
 
 // ─── Pagination ───
-function Pagination({ page, totalPages, onPage }) {
+const Pagination = memo(function Pagination({ page, totalPages, onPage }) {
   if (totalPages <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-2 pt-4">
@@ -101,10 +101,10 @@ function Pagination({ page, totalPages, onPage }) {
       </button>
     </div>
   );
-}
+});
 
 // ─── User Row ───
-function UserRow({ u, onToggle, onDelete, onEdit, actionLoading }) {
+const UserRow = memo(function UserRow({ u, onToggle, onDelete, onEdit, actionLoading }) {
   const busy = actionLoading === u.id;
   return (
     <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
@@ -159,7 +159,7 @@ function UserRow({ u, onToggle, onDelete, onEdit, actionLoading }) {
       </td>
     </tr>
   );
-}
+});
 
 // ─── Main Page ───
 export default function ManageUsers() {
@@ -273,10 +273,10 @@ export default function ManageUsers() {
     }
   };
 
-  const handleSaveEdit = (updated) => {
+  const handleSaveEdit = useCallback((updated) => {
     setUsers((prev) => prev.map((u) => u.id === updated.id ? updated : u));
     setAdmins((prev) => prev.map((u) => u.id === updated.id ? updated : u));
-  };
+  }, []);
 
   const tabBtn = (key, label, Icon, count) => (
     <button

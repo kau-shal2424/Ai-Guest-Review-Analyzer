@@ -3,7 +3,6 @@ import { FileText, Download, TrendingUp, MessageSquare, Users, Sparkles, Calenda
 import { fetchAnalytics } from '../api/admin';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import jsPDF from 'jspdf';
 import Loader from '../../components/ui/Loader';
 
 export default function AdminReports() {
@@ -26,9 +25,11 @@ export default function AdminReports() {
     load();
   }, [period]);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!analytics) return;
-    const doc = new jsPDF();
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text('ReviewAI — Admin System Report', 14, 20);
     doc.setFontSize(10);
@@ -52,6 +53,9 @@ export default function AdminReports() {
     }
     doc.save(`admin-report-${period}-${Date.now()}.pdf`);
     toast.success('Report exported!');
+    } catch {
+      toast.error('Failed to export PDF report.');
+    }
   };
 
   const sentimentTotal = analytics

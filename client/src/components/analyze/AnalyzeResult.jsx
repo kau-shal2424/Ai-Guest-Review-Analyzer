@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Card, Badge, Progress } from '../ui';
-import jsPDF from 'jspdf';
 
 export default function AnalyzeResult({ result }) {
   const isAIPowered = result?.aiPowered === true;
@@ -154,8 +153,9 @@ export default function AnalyzeResult({ result }) {
   };
 
   // Premium PDF exporter using jsPDF
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     try {
+      const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
       // Document styling & header

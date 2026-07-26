@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAllReviews } from '../api/admin';
 import {
   Search, ChevronLeft, ChevronRight, Trash2, Eye, SlidersHorizontal,
@@ -47,7 +47,7 @@ export default function AdminReviews() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
@@ -60,7 +60,7 @@ export default function AdminReviews() {
     } finally {
       setDeleting(false);
     }
-  };
+  }, [deleteTarget, load]);
 
   return (
     <div className="space-y-6">

@@ -43,6 +43,8 @@ export default function Modal({
 
       {/* Modal Content */}
       <div
+        role="dialog"
+        aria-modal="true"
         className={`relative w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800/80 flex flex-col overflow-hidden transform transition-all duration-300 scale-100 ${sizeClasses[size]}`}
       >
         {/* Header */}
@@ -56,6 +58,7 @@ export default function Modal({
           )}
           <button
             onClick={onClose}
+            aria-label="Close modal"
             className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
           >
             <X className="w-5 h-5" />

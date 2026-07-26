@@ -1,6 +1,7 @@
-﻿import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useReviews } from '../hooks/useReviews';
+import { createUserReview } from '../api/reviews';
 import { useAuth } from '../../context/AuthContext';
 import { Card, Badge, Skeleton } from '../../components/ui';
 import { 
@@ -56,16 +57,18 @@ export default function Reviews() {
     toast.success(favorites.includes(id) ? "Removed from favorites." : "Added to favorites!");
   };
 
-  // Duplicate simulation
+  // Duplicate review entry via real backend API call
   const handleDuplicate = async (review, e) => {
     e.stopPropagation();
-    toast.success("Duplicating review entry...");
+    if (!review || !review.review) return;
     try {
-      // Simulate by re-creating or triggering success toast
-      toast.success("Review entry duplicated successfully!");
+      toast.loading("Duplicating review...", { id: "duplicate-toast" });
+      await createUserReview({ review: review.review });
+      toast.success("Review entry duplicated successfully!", { id: "duplicate-toast" });
       reload();
     } catch (err) {
-      toast.error("Failed to duplicate review.");
+      console.error("Duplicate review error:", err);
+      toast.error(err.response?.data?.detail || "Failed to duplicate review.", { id: "duplicate-toast" });
     }
   };
 
@@ -132,42 +135,42 @@ export default function Reviews() {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto font-sans">
       
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight mb-2">Guest Reviews</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-[15px] font-medium">
-            Manage, filter, sort, and analyze your guest reviews list.
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Guest Reviews & Feedback</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
+            Manage, search, filter, and audit processed guest sentiment intelligence.
           </p>
         </div>
 
         {/* Action Toolbar */}
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex items-center gap-3 w-full md:w-auto">
           <button
             onClick={handleExportCSV}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 px-4 py-2.5 rounded-xl transition-all shadow-sm"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-4 h-4 text-blue-500" />
             Export CSV
           </button>
 
           {/* Toggle layouts */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800/80">
+          <div className="flex bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`p-2 rounded-lg transition-colors cursor-pointer ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
               title="Grid View"
             >
-              <LayoutGrid className="w-4.5 h-4.5" />
+              <LayoutGrid className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`p-2 rounded-lg transition-colors cursor-pointer ${viewMode === 'list' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
               title="Table List View"
             >
-              <List className="w-4.5 h-4.5" />
+              <List className="w-4 h-4" />
             </button>
           </div>
         </div>
