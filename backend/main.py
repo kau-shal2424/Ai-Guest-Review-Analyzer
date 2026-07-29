@@ -1,4 +1,10 @@
-# pyrefly: ignore [missing-import]
+import sys
+import os
+
+# Add app directory to sys.path
+app_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app")
+if app_dir not in sys.path:
+    sys.path.insert(0, app_dir)
 
 from utils.env_loader import load_env
 load_env()
@@ -8,12 +14,12 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from routes.reviews import router as reviews_router
-from routes.auth import router as auth_router
-from routes.google_auth import router as google_auth_router
-from routes.admin import router as admin_router
-from routes.notifications import router as notifications_router
-from routes.settings import router as settings_router
+from api.reviews import router as reviews_router
+from api.auth import router as auth_router
+from api.google_auth import router as google_auth_router
+from api.admin import router as admin_router
+from api.notifications import router as notifications_router
+from api.settings import router as settings_router
 
 import os
 import logging

@@ -3,10 +3,10 @@ import {
   User, Mail, Phone, Shield, Save, CheckCircle, 
   Calendar, Lock, MessageSquare, Users, Award 
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { getSettings, updateProfile, changePassword } from '../../api/settings';
-import { fetchAdminDashboard } from '../api/admin';
-import { Card, Badge, Button, Input, Loader, showError, showSuccess } from '../../components/ui';
+import { useAuth } from '../../shared/context/AuthContext';
+import { getSettings, updateProfile, changePassword } from '../../features/settings/services/settings';
+import { fetchAdminDashboard } from '../services/admin';
+import { Card, Badge, Button, Input, Loader, showError, showSuccess } from '../../shared/ui';
 
 export default function AdminProfile() {
   const { user } = useAuth();

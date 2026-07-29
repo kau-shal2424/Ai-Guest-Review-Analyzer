@@ -6,10 +6,10 @@ import {
   Clock, Calendar, CalendarDays, UserPlus
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import StatCard from '../../components/dashboard/StatCard';
-import Loader from '../../components/ui/Loader';
-import ErrorState from '../../components/ErrorState';
-import { Card, KPICard, Badge } from '../../components/ui';
+import StatCard from '../../features/dashboard/components/StatCard';
+import Loader from '../../shared/ui/Loader';
+import ErrorState from '../../shared/components/ErrorState';
+import { Card, KPICard, Badge } from '../../shared/ui';
 import { motion } from 'framer-motion';
 
 const SentimentBar = ({ label, value, total, colorClass, bgClass }) => {

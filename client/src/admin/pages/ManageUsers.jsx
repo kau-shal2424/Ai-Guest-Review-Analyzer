@@ -5,8 +5,8 @@ import {
   ChevronLeft, ChevronRight, MessageSquare, Edit2, Save
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { showError, showSuccess } from '../../components/ui';
-import Loader from '../../components/ui/Loader';
+import { showError, showSuccess } from '../../shared/ui';
+import Loader from '../../shared/ui/Loader';
 
 const API = import.meta.env.VITE_API_BASE_URL;
 

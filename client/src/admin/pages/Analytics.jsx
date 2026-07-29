@@ -1,13 +1,13 @@
-﻿import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import {
   ArrowLeft, BarChart2, MessageSquare, Users, Shield, Sparkles,
   Calendar, Download, CheckCircle, XCircle, TrendingUp, Cpu
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { SentimentPieChart, ThemeBarChart } from '../../components/dashboard/Charts';
-import Loader from '../../components/ui/Loader';
-import ErrorState from '../../components/ErrorState';
+import { SentimentPieChart, ThemeBarChart } from '../../features/dashboard/components/Charts';
+import Loader from '../../shared/ui/Loader';
+import ErrorState from '../../shared/components/ErrorState';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';

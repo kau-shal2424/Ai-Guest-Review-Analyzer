@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchAllReviews } from '../api/admin';
+import { fetchAllReviews } from '../services/admin';
 import {
   Search, ChevronLeft, ChevronRight, Trash2, Eye, SlidersHorizontal,
   MessageSquare, ThumbsUp, ThumbsDown, MinusCircle, User, Calendar
 } from 'lucide-react';
-import Loader from '../../components/ui/Loader';
-import { showError, showSuccess } from '../../components/ui';
+import Loader from '../../shared/ui/Loader';
+import { showError, showSuccess } from '../../shared/ui';
 import axios from 'axios';
 
 const SENTIMENT_COLOR = {

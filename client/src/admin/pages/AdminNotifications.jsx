@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Bell, CheckSquare, Trash2, Info, AlertCircle, Sparkles } from 'lucide-react';
-import { useNotifications } from '../../hooks/useNotifications';
-import { Card, Badge, Skeleton } from '../../components/ui';
+import { useNotifications } from '../../features/notifications/hooks/useNotifications';
+import { Card, Badge, Skeleton } from '../../shared/ui';
 import toast from 'react-hot-toast';
 
 export default function AdminNotifications() {

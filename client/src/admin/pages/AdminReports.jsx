@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { FileText, Download, TrendingUp, MessageSquare, Users, Sparkles, Calendar } from 'lucide-react';
-import { fetchAnalytics } from '../api/admin';
+import { fetchAnalytics } from '../services/admin';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import Loader from '../../components/ui/Loader';
+import Loader from '../../shared/ui/Loader';
 
 export default function AdminReports() {
   const [analytics, setAnalytics] = useState(null);

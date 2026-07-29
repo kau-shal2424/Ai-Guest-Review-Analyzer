@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Settings, Shield, Save, Check } from 'lucide-react';
-import { getSettings, updateProfile, changePassword, updateNotifications, updateTheme } from '../../api/settings';
-import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
-import { showError, showSuccess } from '../../components/ui';
-import Loader from '../../components/ui/Loader';
+import { getSettings, updateProfile, changePassword, updateNotifications, updateTheme } from '../../features/settings/services/settings';
+import { useAuth } from '../../shared/context/AuthContext';
+import { useTheme } from '../../shared/context/ThemeContext';
+import { showError, showSuccess } from '../../shared/ui';
+import Loader from '../../shared/ui/Loader';
 
 function Toggle({ checked, onChange, id }) {
   return (
