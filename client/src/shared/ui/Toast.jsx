@@ -2,7 +2,29 @@ import React from "react";
 import toast from "react-hot-toast";
 import { CheckCircle2, AlertCircle, X } from "lucide-react";
 
+export const sanitizeToastMessage = (msg, defaultFallback = "Notification") => {
+  if (typeof msg === "string" && msg.trim().length > 0) return msg;
+  if (Array.isArray(msg)) {
+    return msg
+      .map((item) =>
+        typeof item === "string"
+          ? item
+          : item?.msg || item?.detail || JSON.stringify(item)
+      )
+      .join(", ");
+  }
+  if (typeof msg === "object" && msg !== null) {
+    if (typeof msg.detail === "string") return msg.detail;
+    if (typeof msg.message === "string") return msg.message;
+    return JSON.stringify(msg);
+  }
+  return String(msg || defaultFallback);
+};
+
 export const showSuccess = (message, description = "") => {
+  const safeMessage = sanitizeToastMessage(message, "Operation successful");
+  const safeDescription = description ? sanitizeToastMessage(description, "") : "";
+
   return toast.custom(
     (t) => (
       <div
@@ -15,11 +37,11 @@ export const showSuccess = (message, description = "") => {
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-            {message}
+            {safeMessage}
           </h4>
-          {description && (
+          {safeDescription && (
             <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-              {description}
+              {safeDescription}
             </p>
           )}
         </div>
@@ -36,6 +58,9 @@ export const showSuccess = (message, description = "") => {
 };
 
 export const showError = (message, description = "") => {
+  const safeMessage = sanitizeToastMessage(message, "An error occurred");
+  const safeDescription = description ? sanitizeToastMessage(description, "") : "";
+
   return toast.custom(
     (t) => (
       <div
@@ -48,11 +73,11 @@ export const showError = (message, description = "") => {
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-            {message}
+            {safeMessage}
           </h4>
-          {description && (
+          {safeDescription && (
             <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-              {description}
+              {safeDescription}
             </p>
           )}
         </div>
@@ -75,6 +100,8 @@ export default function Toast({
   type = "success",
   onClose,
 }) {
+  const safeMessage = sanitizeToastMessage(message, "Notification");
+  const safeDescription = description ? sanitizeToastMessage(description, "") : "";
   const icons = {
     success: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
     error: <AlertCircle className="w-5 h-5 text-rose-500" />,
@@ -94,11 +121,11 @@ export default function Toast({
       <div className="flex-shrink-0 mt-0.5">{icons[type]}</div>
       <div className="flex-1 min-w-0">
         <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-          {message}
+          {safeMessage}
         </h4>
-        {description && (
+        {safeDescription && (
           <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-            {description}
+            {safeDescription}
           </p>
         )}
       </div>

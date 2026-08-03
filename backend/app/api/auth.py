@@ -1,12 +1,47 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from datetime import datetime, timedelta
 
-from models.user import UserCreate, UserLogin, UserResponse, TokenResponse
-from services.auth_service import register_user, get_user_by_email, authenticate_user
+import re
+from models.user import UserCreate, UserLogin, UserResponse, TokenResponse, ForgotPasswordRequest, ResetPasswordRequest
+from services.auth_service import (
+    register_user,
+    get_user_by_email,
+    authenticate_user,
+    create_password_reset_token,
+    reset_user_password,
+)
 from utils.auth import create_access_token, get_current_user
 from middleware.rate_limit import check_login_rate_limit
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+
+def validate_password_complexity(password: str):
+    if len(password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long."
+        )
+    if not re.search(r"[A-Z]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one uppercase letter."
+        )
+    if not re.search(r"[a-z]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one lowercase letter."
+        )
+    if not re.search(r"[0-9]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one number."
+        )
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one special character."
+        )
 
 
 # ==========================
@@ -16,40 +51,30 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 def register(user: UserCreate):
     """
     Register a new user.
-
-    Steps:
-    1. Validate input via UserCreate model.
-    2. Check if password and confirmPassword match.
-    3. Check if password is at least 8 characters.
-    4. Check if email already exists.
-    5. Call auth_service.register_user() to hash and save.
-    6. Return success message and user details.
     """
+    if not user.agreeToTerms:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You must agree to the Terms & Conditions and Privacy Policy."
+        )
+
     if user.password != user.confirmPassword:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Passwords do not match"
+            detail="Passwords do not match."
         )
 
-    if len(user.password) < 8:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 8 characters long"
-        )
+    validate_password_complexity(user.password)
 
     existing_user = get_user_by_email(user.email)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            detail="Email already registered."
         )
 
-    role = user.role.lower().strip()
-    if role not in ["user", "admin"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Role must be either 'user' or 'admin'"
-        )
+    # Always force role to 'user' for public registration
+    role = "user"
 
     user_data = {
         "fullName": user.fullName.strip(),
@@ -153,3 +178,46 @@ def get_me(current_user: dict = Depends(get_current_user)):
         "createdAt": current_user.get("createdAt"),
         "updatedAt": current_user.get("updatedAt")
     }
+
+
+# ==========================
+# Forgot Password
+# ==========================
+@router.post("/forgot-password")
+def forgot_password(req: ForgotPasswordRequest):
+    """
+    Generate secure 1-hour password reset token.
+    Never reveals whether an email exists in system (security protection against enumeration).
+    """
+    token = create_password_reset_token(req.email)
+    
+    return {
+        "message": "If an account with that email exists, a password reset link has been generated.",
+        "resetToken": token
+    }
+
+
+# ==========================
+# Reset Password
+# ==========================
+@router.post("/reset-password")
+def reset_password(req: ResetPasswordRequest):
+    """
+    Reset user password using token.
+    """
+    if req.newPassword != req.confirmPassword:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match."
+        )
+
+    validate_password_complexity(req.newPassword)
+    
+    success = reset_user_password(req.token, req.newPassword)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset link is invalid or has expired."
+        )
+
+    return {"message": "Password updated successfully. You can now log in."}

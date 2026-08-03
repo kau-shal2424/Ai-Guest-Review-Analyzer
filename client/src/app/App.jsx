@@ -7,6 +7,8 @@ import { AuthProvider } from "../shared/context/AuthContext";
 import UserRoute from "../shared/components/UserRoute";
 import AdminRoute from "../shared/components/AdminRoute";
 
+import ErrorBoundary from "../shared/components/ErrorBoundary";
+
 // Shared Layouts
 import MainLayout from "../layouts/MainLayout";
 import UserLayout from "../layouts/UserLayout";
@@ -15,9 +17,13 @@ import AdminLayout from "../layouts/AdminLayout";
 // ─── Lazy Loaded Public Pages ────────────────────────────────────────────────
 const Home = lazy(() => import("../pages/Home"));
 const About = lazy(() => import("../pages/About"));
+const Terms = lazy(() => import("../pages/Terms"));
+const Privacy = lazy(() => import("../pages/Privacy"));
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const Signup = lazy(() => import("../features/auth/pages/Signup"));
 const AuthCallback = lazy(() => import("../features/auth/pages/AuthCallback"));
+const ForgotPassword = lazy(() => import("../features/auth/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("../features/auth/pages/ResetPassword"));
 
 // ─── Lazy Loaded User Feature Pages ─────────────────────────────────────────
 const UserDashboard = lazy(() => import("../features/dashboard/pages/Dashboard"));
@@ -37,8 +43,6 @@ const AdminManageUsers = lazy(() => import("../admin/pages/ManageUsers"));
 const AdminAnalytics = lazy(() => import("../admin/pages/Analytics"));
 const AdminReports = lazy(() => import("../admin/pages/AdminReports"));
 const AdminSettings = lazy(() => import("../admin/pages/AdminSettings"));
-const AdminProfile = lazy(() => import("../admin/pages/AdminProfile"));
-const AdminNotifications = lazy(() => import("../admin/pages/AdminNotifications"));
 
 const PageFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[#F7F7F7] dark:bg-[#1a1a1a]">
@@ -59,70 +63,75 @@ function App() {
       />
       <BrowserRouter>
         <AuthProvider>
-          <Suspense fallback={<PageFallback />}>
-            <Routes>
-              {/* ── Public: no layout ── */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
+          <ErrorBoundary>
+            <Suspense fallback={<PageFallback />}>
+              <Routes>
+                {/* ── Public: no layout ── */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/admin/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
 
-              {/* ── Public: marketing layout (Navbar + Footer) ── */}
-              <Route element={<MainLayout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-              </Route>
-
-              {/* ── USER SUB-APPLICATION ── */}
-              <Route element={<UserRoute />}>
-                <Route element={<UserLayout />}>
-                  <Route path="/user/dashboard"     element={<UserDashboard />} />
-                  <Route path="/user/reviews"        element={<UserReviews />} />
-                  <Route path="/user/analyze"        element={<UserAnalyze />} />
-                  <Route path="/user/insights"       element={<UserAIInsights />} />
-                  <Route path="/user/reports"        element={<UserReports />} />
-                  <Route path="/user/notifications"  element={<UserNotifications />} />
-                  <Route path="/user/settings"       element={<UserSettings />} />
-                  <Route path="/user/profile"        element={<UserProfile />} />
-                  <Route path="/user/help"           element={<UserHelpCenter />} />
-                  {/* Catch-all redirect within /user */}
-                  <Route path="/user" element={<Navigate to="/user/dashboard" replace />} />
-                  <Route path="/user/*" element={<Navigate to="/user/dashboard" replace />} />
+                {/* ── Public: marketing layout (Navbar + Footer) ── */}
+                <Route element={<MainLayout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<About />} />
                 </Route>
-              </Route>
 
-              {/* ── ADMIN SUB-APPLICATION ── */}
-              <Route element={<AdminRoute />}>
-                <Route element={<AdminLayout />}>
-                  <Route path="/admin/dashboard"   element={<AdminDashboard />} />
-                  <Route path="/admin/reviews"     element={<AdminReviews />} />
-                  <Route path="/admin/users"       element={<AdminManageUsers />} />
-                  <Route path="/admin/analytics"   element={<AdminAnalytics />} />
-                  <Route path="/admin/reports"     element={<AdminReports />} />
-                  <Route path="/admin/settings"    element={<AdminSettings />} />
-                  <Route path="/admin/profile"     element={<AdminProfile />} />
-                  <Route path="/admin/notifications" element={<AdminNotifications />} />
-                  {/* Catch-all redirect within /admin */}
-                  <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-                  <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
+                {/* ── USER SUB-APPLICATION ── */}
+                <Route element={<UserRoute />}>
+                  <Route element={<UserLayout />}>
+                    <Route path="/user/dashboard"     element={<UserDashboard />} />
+                    <Route path="/user/reviews"        element={<UserReviews />} />
+                    <Route path="/user/analyze"        element={<UserAnalyze />} />
+                    <Route path="/user/insights"       element={<UserAIInsights />} />
+                    <Route path="/user/reports"        element={<UserReports />} />
+                    <Route path="/user/notifications"  element={<UserNotifications />} />
+                    <Route path="/user/settings"       element={<UserSettings />} />
+                    <Route path="/user/profile"        element={<UserProfile />} />
+                    <Route path="/user/help"           element={<UserHelpCenter />} />
+                    {/* Catch-all redirect within /user */}
+                    <Route path="/user" element={<Navigate to="/user/dashboard" replace />} />
+                    <Route path="/user/*" element={<Navigate to="/user/dashboard" replace />} />
+                  </Route>
                 </Route>
-              </Route>
 
-              {/* ── Legacy route redirects ── */}
-              <Route path="/dashboard"   element={<Navigate to="/user/dashboard" replace />} />
-              <Route path="/analyze"     element={<Navigate to="/user/analyze" replace />} />
-              <Route path="/reviews"     element={<Navigate to="/user/reviews" replace />} />
-              <Route path="/insights"    element={<Navigate to="/user/insights" replace />} />
-              <Route path="/reports"     element={<Navigate to="/user/reports" replace />} />
-              <Route path="/settings"    element={<Navigate to="/user/settings" replace />} />
-              <Route path="/profile"     element={<Navigate to="/user/profile" replace />} />
-              <Route path="/help"        element={<Navigate to="/user/help" replace />} />
-              <Route path="/notifications" element={<Navigate to="/user/notifications" replace />} />
-              <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+                {/* ── ADMIN SUB-APPLICATION ── */}
+                <Route element={<AdminRoute />}>
+                  <Route element={<AdminLayout />}>
+                    <Route path="/admin/dashboard"   element={<AdminDashboard />} />
+                    <Route path="/admin/reviews"     element={<AdminReviews />} />
+                    <Route path="/admin/users"       element={<AdminManageUsers />} />
+                    <Route path="/admin/analytics"   element={<AdminAnalytics />} />
+                    <Route path="/admin/reports"     element={<AdminReports />} />
+                    <Route path="/admin/settings"    element={<AdminSettings />} />
+                    {/* Catch-all redirect within /admin */}
+                    <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+                    <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
+                  </Route>
+                </Route>
 
-              {/* ── 404 fallback ── */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
+                {/* ── Legacy route redirects ── */}
+                <Route path="/dashboard"   element={<Navigate to="/user/dashboard" replace />} />
+                <Route path="/analyze"     element={<Navigate to="/user/analyze" replace />} />
+                <Route path="/reviews"     element={<Navigate to="/user/reviews" replace />} />
+                <Route path="/insights"    element={<Navigate to="/user/insights" replace />} />
+                <Route path="/reports"     element={<Navigate to="/user/reports" replace />} />
+                <Route path="/settings"    element={<Navigate to="/user/settings" replace />} />
+                <Route path="/profile"     element={<Navigate to="/user/profile" replace />} />
+                <Route path="/help"        element={<Navigate to="/user/help" replace />} />
+                <Route path="/notifications" element={<Navigate to="/user/notifications" replace />} />
+                <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+
+                {/* ── 404 fallback ── */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
         </AuthProvider>
       </BrowserRouter>
     </>

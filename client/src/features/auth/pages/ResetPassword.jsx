@@ -1,30 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, ArrowRight, Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { Button, Input, showError } from "../../../shared/ui";
-import { useAuth } from "../../../shared/context/AuthContext";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Lock, Eye, EyeOff, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Button, Input, showError, showSuccess } from "../../../shared/ui";
 import { motion } from "framer-motion";
+import axios from "axios";
 
-export default function Signup() {
+export default function ResetPassword() {
   const navigate = useNavigate();
-  const { register, token } = useAuth();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token") || "";
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agree, setAgree] = useState(false);
+  
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmError, setConfirmError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  // Redirect if already authenticated
   useEffect(() => {
-    if (token) {
-      navigate("/user/dashboard");
+    if (!token) {
+      showError("Invalid or missing password reset token.");
     }
-  }, [token, navigate]);
+  }, [token]);
 
   const validatePasswordStrength = (pass) => {
     if (pass.length < 8) return "Password must be at least 8 characters long.";
@@ -37,50 +36,42 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim()) {
-      const msg = "Name is required.";
-      setError(msg);
-      showError(msg);
+    if (!token) {
+      showError("Invalid or missing reset token. Please request a new link.");
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email.trim())) {
-      const msg = "Please enter a valid email address.";
-      setError(msg);
-      showError(msg);
-      return;
-    }
-
-    const passErr = validatePasswordStrength(password);
+    const passErr = validatePasswordStrength(newPassword);
     if (passErr) {
-      setError(passErr);
+      setPasswordError(passErr);
       showError(passErr);
       return;
+    } else {
+      setPasswordError("");
     }
 
-    if (password !== confirmPassword) {
-      const msg = "Passwords do not match.";
-      setError(msg);
-      showError(msg);
+    if (newPassword !== confirmPassword) {
+      setConfirmError("Passwords do not match.");
+      showError("Passwords do not match.");
       return;
+    } else {
+      setConfirmError("");
     }
 
-    if (!agree) {
-      const msg = "You must agree to the Terms & Conditions and Privacy Policy.";
-      setError(msg);
-      showError(msg);
-      return;
-    }
-
-    setError("");
     setIsLoading(true);
 
     try {
-      await register(name.trim(), email.trim(), password, confirmPassword);
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/reset-password`, {
+        token,
+        newPassword,
+        confirmPassword,
+      });
+
+      showSuccess(response.data?.message || "Password updated successfully!");
+      navigate("/login", { replace: true });
     } catch (err) {
-      const errorMsg = err.response?.data?.detail || "Registration failed. Please try again.";
-      setError(errorMsg);
+      const msg = err.response?.data?.detail || "Reset link is invalid or has expired.";
+      showError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -88,14 +79,13 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen bg-[#F7F7F7] dark:bg-[#1a1a1a] text-[#222222] dark:text-white flex flex-col justify-between relative font-sans">
-
       {/* Top Header Bar */}
       <header className="relative z-20 px-6 py-5 flex items-center justify-between max-w-7xl mx-auto w-full border-b border-[#EBEBEB] dark:border-[#333333] bg-white dark:bg-[#1a1a1a]">
         <Link
-          to="/"
+          to="/login"
           className="flex items-center gap-2 text-[#717171] hover:text-[#222222] dark:hover:text-white text-xs font-semibold uppercase tracking-wider transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Platform
+          <ArrowLeft className="w-4 h-4" /> Back to Sign In
         </Link>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-[#FF385C] flex items-center justify-center text-white font-bold text-xs">
@@ -114,61 +104,50 @@ export default function Signup() {
           className="w-full max-w-md bg-white dark:bg-[#222222] border border-[#EBEBEB] dark:border-[#333333] rounded-2xl p-8 sm:p-10 shadow-[0_2px_16px_rgba(0,0,0,0.12)] space-y-6 text-left"
         >
           <div className="space-y-1">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
             <h1 className="text-2xl font-extrabold tracking-tight text-[#222222] dark:text-white">
-              Create your account
+              Create new password
             </h1>
             <p className="text-xs text-[#717171] font-normal">
-              Join ReviewPulse for AI-powered guest reviews.
+              Your new password must be at least 8 characters and include uppercase, lowercase, number, and special character.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              type="text"
-              label="Full Name"
-              placeholder="Your Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              leftIcon={<User className="w-4 h-4 text-[#717171]" />}
-              error={error && !name ? "Name is required" : ""}
-            />
-
-            <Input
-              type="email"
-              label="Email"
-              placeholder="abcd@gmail.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              leftIcon={<Mail className="w-4 h-4 text-[#717171]" />}
-              error={error && !email ? "Email is required" : ""}
-            />
-
-            <Input
-              type={showPassword ? "text" : "password"}
-              label="Password"
+              type={showNewPassword ? "text" : "password"}
+              label="New Password"
               placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={newPassword}
+              onChange={(e) => {
+                setNewPassword(e.target.value);
+                if (passwordError) setPasswordError("");
+              }}
               leftIcon={<Lock className="w-4 h-4 text-[#717171]" />}
               rightIcon={
                 <button
                   type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowNewPassword(!showNewPassword)}
                   className="text-[#717171] hover:text-[#222222] dark:hover:text-white transition-colors cursor-pointer"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               }
-              error={error && !password ? "Password is required" : ""}
+              error={passwordError}
             />
 
             <Input
               type={showConfirmPassword ? "text" : "password"}
-              label="Confirm Password"
+              label="Confirm New Password"
               placeholder="••••••••"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                if (confirmError) setConfirmError("");
+              }}
               leftIcon={<Lock className="w-4 h-4 text-[#717171]" />}
               rightIcon={
                 <button
@@ -180,42 +159,23 @@ export default function Signup() {
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               }
-              error={error && !confirmPassword ? "Confirm password is required" : ""}
+              error={confirmError}
             />
-
-            <div className="flex items-start gap-2 text-xs pt-1">
-              <input
-                id="terms"
-                type="checkbox"
-                checked={agree}
-                onChange={(e) => setAgree(e.target.checked)}
-                className="mt-0.5 rounded border-[#EBEBEB] text-[#FF385C] focus:ring-[#FF385C] cursor-pointer"
-              />
-              <label htmlFor="terms" className="font-normal text-[#717171] leading-snug cursor-pointer">
-                I agree to the <Link to="/terms" className="font-semibold text-[#FF385C] hover:underline">Terms of Service</Link> and <Link to="/privacy" className="font-semibold text-[#FF385C] hover:underline">Privacy Policy</Link>
-              </label>
-            </div>
-
-            {error && (
-              <p className="text-xs font-semibold text-[#D93025] text-center bg-[#FDECEA] border border-[#F5C6C2] py-2 rounded-lg">
-                {error}
-              </p>
-            )}
 
             <Button
               type="submit"
               variant="primary"
               isLoading={isLoading}
-              disabled={isLoading || !agree}
+              disabled={isLoading || !token}
               rightIcon={<ArrowRight className="w-4 h-4" />}
-              className="w-full py-3 mt-2 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold rounded-full shadow-[0_2px_8px_rgba(255,56,92,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 mt-2 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold rounded-full shadow-[0_2px_8px_rgba(255,56,92,0.3)] transition-all"
             >
-              Create Account
+              Update Password
             </Button>
           </form>
 
           <p className="text-center text-xs font-normal text-[#717171] pt-1">
-            Already have an account?{" "}
+            Back to{" "}
             <Link to="/login" className="font-bold text-[#FF385C] hover:underline">
               Sign In
             </Link>

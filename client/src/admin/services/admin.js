@@ -20,11 +20,6 @@ export const fetchAllUsers = async (params = {}) => {
   return res.data;
 };
 
-export const fetchAllAdmins = async (params = {}) => {
-  const res = await axios.get(`${ADMIN_BASE}/admins`, { params });
-  return res.data;
-};
-
 export const updateUser = async (userId, data) => {
   const res = await axios.put(`${ADMIN_BASE}/users/${userId}`, data);
   return res.data;
@@ -37,5 +32,11 @@ export const deleteUser = async (userId) => {
 // Analytics
 export const fetchAnalytics = async (period = 'all') => {
   const res = await axios.get(`${ADMIN_BASE}/analytics`, { params: { period } });
+  return res.data;
+};
+
+// Export data (Full datasets for CSV & PDF)
+export const fetchExportData = async () => {
+  const res = await axios.get(`${ADMIN_BASE}/export-data`);
   return res.data;
 };

@@ -3,26 +3,23 @@ import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, BookOpen, Users, BarChart3, FileText,
-  Bell, Settings, User, ChevronLeft, ChevronRight, X
+  Settings, ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 import { useAuth } from '../shared/context/AuthContext';
-import { useNotifications } from '../features/notifications/hooks/useNotifications';
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/reviews', icon: BookOpen, label: 'Reviews' },
-  { to: '/admin/users', icon: Users, label: 'Manage Users' },
+  { to: '/admin/users', icon: Users, label: 'Users' },
   { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/admin/reports', icon: FileText, label: 'Reports' },
 ];
 
 const BOTTOM_ITEMS = [
-  { to: '/admin/notifications', icon: Bell, label: 'Notifications', showBadge: true },
   { to: '/admin/settings', icon: Settings, label: 'Settings' },
-  { to: '/admin/profile', icon: User, label: 'Profile' },
 ];
 
-function SidebarItem({ to, icon: Icon, label, collapsed, badge }) {
+function SidebarItem({ to, icon: Icon, label, collapsed }) {
   return (
     <NavLink
       to={to}
@@ -37,11 +34,6 @@ function SidebarItem({ to, icon: Icon, label, collapsed, badge }) {
     >
       <span className="relative flex-shrink-0">
         <Icon className="w-4 h-4" />
-        {badge > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#D93025] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-            {badge > 9 ? '9+' : badge}
-          </span>
-        )}
       </span>
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -62,7 +54,6 @@ function SidebarItem({ to, icon: Icon, label, collapsed, badge }) {
 
 export default function AdminSidebar({ mobileOpen, onMobileClose, onCollapsedChange }) {
   const { user } = useAuth();
-  const { unreadCount } = useNotifications();
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -105,7 +96,6 @@ export default function AdminSidebar({ mobileOpen, onMobileClose, onCollapsedCha
         <SidebarContent
           collapsed={collapsed}
           setCollapsed={setCollapsed}
-          unreadCount={unreadCount}
           user={user}
         />
       </motion.aside>
@@ -135,12 +125,7 @@ export default function AdminSidebar({ mobileOpen, onMobileClose, onCollapsedCha
             </div>
             <div className="px-3 py-4 border-t border-[#EBEBEB] dark:border-[#333333] space-y-1">
               {BOTTOM_ITEMS.map(item => (
-                <SidebarItem
-                  key={item.to}
-                  {...item}
-                  collapsed={false}
-                  badge={item.showBadge ? unreadCount : 0}
-                />
+                <SidebarItem key={item.to} {...item} collapsed={false} />
               ))}
             </div>
           </motion.aside>
@@ -150,14 +135,14 @@ export default function AdminSidebar({ mobileOpen, onMobileClose, onCollapsedCha
   );
 }
 
-function SidebarContent({ collapsed, setCollapsed, unreadCount, user }) {
+function SidebarContent({ collapsed, setCollapsed, user }) {
   return (
     <div className="flex flex-col h-full text-left">
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-4 py-4 border-b border-[#EBEBEB] dark:border-[#333333]`}>
         {!collapsed && <Logo />}
         {collapsed && (
           <div className="w-8 h-8 bg-[#FF385C] rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-            A
+            R
           </div>
         )}
         <button
@@ -186,19 +171,14 @@ function SidebarContent({ collapsed, setCollapsed, unreadCount, user }) {
         )}
         {collapsed && <div className="h-4" />}
         {BOTTOM_ITEMS.map(item => (
-          <SidebarItem
-            key={item.to}
-            {...item}
-            collapsed={collapsed}
-            badge={item.showBadge ? unreadCount : 0}
-          />
+          <SidebarItem key={item.to} {...item} collapsed={collapsed} />
         ))}
       </nav>
 
       {!collapsed && user && (
         <div className="px-3 py-3 border-t border-[#EBEBEB] dark:border-[#333333]">
           <NavLink
-            to="/admin/profile"
+            to="/admin/settings"
             className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#F7F7F7] dark:hover:bg-[#2A2A2A] transition-colors group"
           >
             <div className="w-8 h-8 rounded-full bg-[#222222] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
@@ -215,7 +195,7 @@ function SidebarContent({ collapsed, setCollapsed, unreadCount, user }) {
       )}
       {collapsed && user && (
         <div className="px-3 py-3 border-t border-[#EBEBEB] dark:border-[#333333] flex justify-center">
-          <NavLink to="/admin/profile">
+          <NavLink to="/admin/settings">
             <div className="w-8 h-8 rounded-full bg-[#222222] text-white flex items-center justify-center text-xs font-bold">
               {user.fullName?.charAt(0)?.toUpperCase() || 'A'}
             </div>
@@ -230,11 +210,11 @@ function Logo() {
   return (
     <div className="flex items-center gap-2">
       <div className="w-8 h-8 bg-[#FF385C] rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-        A
+        R
       </div>
       <div>
-        <p className="text-sm font-extrabold text-[#222222] dark:text-white leading-none">ReviewAI</p>
-        <p className="text-[10px] text-[#717171] font-medium">Control Panel</p>
+        <p className="text-sm font-extrabold text-[#222222] dark:text-white leading-none">ReviewPulse</p>
+        <p className="text-[10px] text-[#717171] font-medium">Admin Console</p>
       </div>
     </div>
   );

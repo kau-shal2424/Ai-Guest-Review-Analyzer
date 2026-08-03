@@ -82,3 +82,78 @@ def get_user_by_email(email: str) -> dict | None:
     if user:
         user["_id"] = str(user["_id"])
     return user
+
+
+import secrets
+from datetime import timedelta
+
+def create_password_reset_token(email: str) -> str | None:
+    """
+    Generate a 1-hour secure password reset token and store it in MongoDB.
+    Returns the token if user exists, else None.
+    """
+    user = get_user_by_email(email)
+    if not user:
+        return None
+        
+    token = secrets.token_urlsafe(32)
+    expires = (datetime.utcnow() + timedelta(hours=1)).isoformat()
+    
+    users_collection.update_one(
+        {"_id": ObjectId(user["_id"])},
+        {"$set": {
+            "resetToken": token,
+            "resetTokenExpires": expires,
+            "updatedAt": datetime.utcnow().isoformat()
+        }}
+    )
+    return token
+
+
+def get_user_by_reset_token(token: str) -> dict | None:
+    """
+    Find user with a valid, non-expired password reset token.
+    """
+    if not token:
+        return None
+        
+    user = users_collection.find_one({"resetToken": token})
+    if not user:
+        return None
+        
+    expires_str = user.get("resetTokenExpires")
+    if expires_str:
+        try:
+            expires_dt = datetime.fromisoformat(expires_str)
+            if datetime.utcnow() > expires_dt:
+                return None
+        except Exception:
+            return None
+            
+    user["_id"] = str(user["_id"])
+    return user
+
+
+def reset_user_password(token: str, new_password: str) -> bool:
+    """
+    Reset user's password using reset token.
+    """
+    user = get_user_by_reset_token(token)
+    if not user:
+        return False
+        
+    hashed = hash_password(new_password)
+    users_collection.update_one(
+        {"_id": ObjectId(user["_id"])},
+        {
+            "$set": {
+                "password": hashed,
+                "updatedAt": datetime.utcnow().isoformat()
+            },
+            "$unset": {
+                "resetToken": "",
+                "resetTokenExpires": ""
+            }
+        }
+    )
+    return True

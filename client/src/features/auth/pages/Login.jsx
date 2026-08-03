@@ -2,16 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, ArrowRight, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Button, Input } from "../../../shared/ui";
-import { useAuth } from "../../../shared/context/AuthContext";
+import { useAuth, extractErrorMessage } from "../../../shared/context/AuthContext";
 import { motion } from "framer-motion";
 
 export default function Login() {
   const navigate = useNavigate();
   const { login, token, user } = useAuth();
   const [searchParams] = useSearchParams();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,18 +47,27 @@ export default function Login() {
   }, [token, user, navigate]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
     let hasError = false;
 
     if (!email) {
-      setEmailError("Email is required");
+      setEmailError("Email is required.");
       hasError = true;
     } else {
-      setEmailError("");
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        setEmailError("Please enter a valid email address.");
+        hasError = true;
+      } else {
+        setEmailError("");
+      }
     }
 
     if (!password) {
-      setPasswordError("Password is required");
+      setPasswordError("Password is required.");
       hasError = true;
     } else {
       setPasswordError("");
@@ -69,9 +79,9 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
     } catch (err) {
-      const errorMsg = err.response?.data?.detail || "Failed to log in. Please check your credentials.";
+      const errorMsg = typeof err?.message === "string" ? err.message : extractErrorMessage(err, "Invalid email or password.");
       setError(errorMsg);
     } finally {
       setIsLoading(false);
@@ -80,7 +90,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[#F7F7F7] dark:bg-[#1a1a1a] text-[#222222] dark:text-white flex flex-col justify-between relative font-sans">
-      
+
       {/* Top Header Bar */}
       <header className="relative z-20 px-6 py-5 flex items-center justify-between max-w-7xl mx-auto w-full border-b border-[#EBEBEB] dark:border-[#333333] bg-white dark:bg-[#1a1a1a]">
         <Link
@@ -93,13 +103,13 @@ export default function Login() {
           <div className="w-7 h-7 rounded-full bg-[#FF385C] flex items-center justify-center text-white font-bold text-xs">
             R
           </div>
-          <span className="font-extrabold text-sm tracking-tight text-[#222222] dark:text-white">ReviewAI</span>
+          <span className="font-extrabold text-sm tracking-tight text-[#222222] dark:text-white">ReviewPulse</span>
         </div>
       </header>
 
       {/* Form Container */}
       <main className="flex-1 flex items-center justify-center px-4 py-12 z-10">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -110,15 +120,15 @@ export default function Login() {
               Welcome back
             </h1>
             <p className="text-xs text-[#717171] font-normal">
-              Sign in to your hospitality review analyzer account
+              Sign in to your ReviewPulse account.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               type="email"
-              label="Work Email"
-              placeholder="manager@hotel.com"
+              label="Email"
+              placeholder="abcd@gmail.com"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -141,6 +151,7 @@ export default function Login() {
               rightIcon={
                 <button
                   type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword(!showPassword)}
                   className="text-[#717171] hover:text-[#222222] dark:hover:text-white transition-colors cursor-pointer"
                 >
@@ -154,13 +165,15 @@ export default function Login() {
               <label className="flex items-center gap-2 font-normal text-[#717171] cursor-pointer">
                 <input
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="rounded border-[#EBEBEB] text-[#FF385C] focus:ring-[#FF385C]"
                 />
                 Remember me
               </label>
-              <a href="#" className="font-semibold text-[#FF385C] hover:underline">
+              <Link to="/forgot-password" className="font-semibold text-[#FF385C] hover:underline">
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {error && (
@@ -173,6 +186,7 @@ export default function Login() {
               type="submit"
               variant="primary"
               isLoading={isLoading}
+              disabled={isLoading}
               rightIcon={<ArrowRight className="w-4 h-4" />}
               className="w-full py-3 mt-2 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold rounded-full shadow-[0_2px_8px_rgba(255,56,92,0.3)] transition-all"
             >
@@ -214,7 +228,7 @@ export default function Login() {
 
       {/* Footer info */}
       <footer className="relative z-20 px-6 py-4 text-center text-[11px] text-[#717171] font-normal border-t border-[#EBEBEB] dark:border-[#333333] bg-white dark:bg-[#1a1a1a]">
-        <span>Protected by SOC-2 Protocol · AI Guest Review Analyzer</span>
+        <span>© 2026 ReviewPulse • AI-Powered Guest Review Intelligence</span>
       </footer>
     </div>
   );

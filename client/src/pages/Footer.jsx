@@ -69,11 +69,11 @@ export default function Footer() {
         {/* Sub-footer */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#717171] font-normal">
           <div className="flex flex-wrap items-center gap-2">
-            <span>© 2026 AI Guest Review Analyzer, Inc.</span>
+            <span>© 2026 ReviewPulse, Inc.</span>
             <span>·</span>
-            <span className="hover:underline cursor-pointer">Privacy</span>
+            <Link to="/privacy" className="hover:underline text-[#717171] hover:text-[#222222] dark:hover:text-white">Privacy</Link>
             <span>·</span>
-            <span className="hover:underline cursor-pointer">Terms</span>
+            <Link to="/terms" className="hover:underline text-[#717171] hover:text-[#222222] dark:hover:text-white">Terms</Link>
             <span>·</span>
             <span className="hover:underline cursor-pointer">Sitemap</span>
           </div>

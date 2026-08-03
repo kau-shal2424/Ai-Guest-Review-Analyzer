@@ -10,7 +10,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
     confirmPassword: str = Field(..., min_length=8, max_length=128)
-    role: str = Field(..., description="Role of the user, must be either 'user' or 'admin'")
+    agreeToTerms: bool = True
 
 # ==========================
 # User Login Request
@@ -18,6 +18,17 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
+
+# ==========================
+# Forgot & Reset Password Requests
+# ==========================
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., min_length=1)
+    newPassword: str = Field(..., min_length=8, max_length=128)
+    confirmPassword: str = Field(..., min_length=8, max_length=128)
 
 # ==========================
 # User Response (returned to client)

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Settings, Shield, Save, Check } from 'lucide-react';
-import { getSettings, updateProfile, changePassword, updateNotifications, updateTheme } from '../../features/settings/services/settings';
+import { Shield, Sun, Moon, CheckCircle2, User, Mail, Key, Calendar } from 'lucide-react';
+import { getSettings } from '../../features/settings/services/settings';
 import { useAuth } from '../../shared/context/AuthContext';
 import { useTheme } from '../../shared/context/ThemeContext';
-import { showError, showSuccess } from '../../shared/ui';
 import Loader from '../../shared/ui/Loader';
 
 function Toggle({ checked, onChange, id }) {
@@ -22,120 +21,115 @@ function Toggle({ checked, onChange, id }) {
 }
 
 export default function AdminSettings() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { isDark, toggleTheme } = useTheme();
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [profileForm, setProfileForm] = useState({ fullName: '', phone: '', bio: '' });
-  const [passForm, setPassForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [accountData, setAccountData] = useState(null);
 
   useEffect(() => {
-    getSettings().then(data => {
-      setSettings(data);
-      setProfileForm({ fullName: data.fullName || '', phone: data.phone || '', bio: data.bio || '' });
-    }).catch(() => showError('Failed to load settings.')).finally(() => setLoading(false));
+    getSettings()
+      .then(data => {
+        setAccountData(data);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleProfileSave = async () => {
-    setSaving(true);
-    try {
-      await updateProfile(profileForm);
-      showSuccess('Profile updated successfully.');
-    } catch {
-      showError('Failed to update profile.');
-    } finally {
-      setSaving(false);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader size="lg" />
+      </div>
+    );
+  }
 
-  const handlePasswordSave = async () => {
-    if (passForm.newPassword !== passForm.confirmPassword) {
-      showError('Passwords do not match.');
-      return;
-    }
-    setSaving(true);
-    try {
-      await changePassword({ currentPassword: passForm.currentPassword, newPassword: passForm.newPassword });
-      showSuccess('Password changed successfully.');
-      setPassForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (err) {
-      showError(err?.response?.data?.detail || 'Failed to change password.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) return <div className="flex items-center justify-center h-64"><Loader size="lg" /></div>;
+  const displayName = accountData?.fullName || user?.fullName || 'Platform Administrator';
+  const displayEmail = accountData?.email || user?.email || 'admin@reviewpulse.com';
+  const authProvider = accountData?.authProvider || user?.authProvider || 'local';
+  const createdAtFormatted = user?.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+  const lastLoginFormatted = user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-8 max-w-7xl mx-auto font-sans">
+      {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Admin Settings</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Manage your admin account preferences</p>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Settings</h1>
+        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
+          Platform administrator account information and display preferences.
+        </p>
       </div>
 
-      {/* Profile */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4">
-        <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2"><Shield className="w-4 h-4 text-violet-500" /> Admin Profile</h2>
-        <div className="space-y-3">
-          {[
-            { label: 'Full Name', key: 'fullName', type: 'text' },
-            { label: 'Phone', key: 'phone', type: 'tel' },
-            { label: 'Bio', key: 'bio', type: 'text' },
-          ].map(f => (
-            <div key={f.key}>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">{f.label}</label>
-              <input
-                type={f.type}
-                value={profileForm[f.key]}
-                onChange={e => setProfileForm(p => ({ ...p, [f.key]: e.target.value }))}
-                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
-            </div>
-          ))}
-        </div>
-        <button onClick={handleProfileSave} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-700 disabled:opacity-60 transition-colors">
-          <Save className="w-4 h-4" /> Save Profile
-        </button>
-      </div>
-
-      {/* Password */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4">
-        <h2 className="text-base font-bold text-slate-900 dark:text-white">Change Password</h2>
-        <div className="space-y-3">
-          {[
-            { label: 'Current Password', key: 'currentPassword' },
-            { label: 'New Password', key: 'newPassword' },
-            { label: 'Confirm New Password', key: 'confirmPassword' },
-          ].map(f => (
-            <div key={f.key}>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">{f.label}</label>
-              <input
-                type="password"
-                value={passForm[f.key]}
-                onChange={e => setPassForm(p => ({ ...p, [f.key]: e.target.value }))}
-                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
-            </div>
-          ))}
-        </div>
-        <button onClick={handlePasswordSave} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-700 disabled:opacity-60 transition-colors">
-          <Save className="w-4 h-4" /> Update Password
-        </button>
-      </div>
-
-      {/* Theme */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
-        <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">Appearance</h2>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Dark Mode</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Toggle the control panel theme</p>
+      {/* ── ACCOUNT INFORMATION (READ-ONLY) ── */}
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-xs">
+        {/* User Header Profile Badge */}
+        <div className="flex items-center gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white text-2xl font-black shadow-md overflow-hidden flex-shrink-0">
+            {user?.profileImage ? (
+              <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              displayName.charAt(0).toUpperCase()
+            )}
           </div>
-          <Toggle checked={isDark} onChange={toggleTheme} id="admin-dark-mode" />
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{displayName}</h2>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                <Shield className="w-3 h-3 mr-1" /> Platform Administrator
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{displayEmail}</p>
+          </div>
         </div>
-      </div>
+
+        {/* 5 Read-Only Information Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+          <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</p>
+            <p className="text-sm font-black text-slate-800 dark:text-slate-200 mt-1">{displayName}</p>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</p>
+            <p className="text-sm font-black text-slate-800 dark:text-slate-200 mt-1 truncate">{displayEmail}</p>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Authentication Provider</p>
+            <p className="text-sm font-black text-slate-800 dark:text-slate-200 mt-1 capitalize">{authProvider}</p>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Account Created</p>
+            <p className="text-sm font-black text-slate-800 dark:text-slate-200 mt-1">{createdAtFormatted}</p>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Last Login</p>
+            <p className="text-sm font-black text-slate-800 dark:text-slate-200 mt-1">{lastLoginFormatted}</p>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Security Status</p>
+            <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── APPEARANCE & THEME ── */}
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-4 shadow-xs">
+        <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          {isDark ? <Moon className="w-4 h-4 text-violet-500" /> : <Sun className="w-4 h-4 text-amber-500" />} Appearance &amp; Theme
+        </h2>
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Dark Mode Interface</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Toggle dark / light theme for ReviewPulse Admin Console</p>
+          </div>
+          <Toggle checked={isDark} onChange={toggleTheme} id="admin-dark-mode-settings" />
+        </div>
+      </section>
     </div>
   );
 }

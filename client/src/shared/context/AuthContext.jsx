@@ -3,6 +3,56 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { showError, showSuccess } from "../ui";
 
+export const extractErrorMessage = (err, defaultMsg = "An unexpected error occurred.") => {
+  if (!err) return defaultMsg;
+
+  // Handle Network Errors (e.g. backend server offline)
+  if (err.message === "Network Error" || !err.response) {
+    return "Network error. Please check your internet connection or server status.";
+  }
+
+  const status = err.response?.status;
+  const detail = err.response?.data?.detail;
+
+  // HTTP Status Specific Overrides
+  if (status === 401 || status === 403) {
+    if (typeof detail === "string" && detail.trim()) return detail;
+    return "Invalid email or password.";
+  }
+  if (status === 404) {
+    return "Authentication service endpoint not found.";
+  }
+  if (status === 500) {
+    return "Internal server error. Please try again later.";
+  }
+
+  // Parse detail array or dict from FastAPI
+  if (typeof detail === "string" && detail.trim()) {
+    return detail;
+  }
+  if (Array.isArray(detail)) {
+    const parsed = detail
+      .map((item) =>
+        typeof item === "string"
+          ? item
+          : item?.msg || item?.detail || JSON.stringify(item)
+      )
+      .join(", ");
+    if (parsed) return parsed;
+  }
+  if (typeof detail === "object" && detail !== null) {
+    if (typeof detail.msg === "string") return detail.msg;
+    if (typeof detail.detail === "string") return detail.detail;
+    if (typeof detail.message === "string") return detail.message;
+  }
+
+  if (typeof err.message === "string" && err.message) {
+    return err.message;
+  }
+
+  return defaultMsg;
+};
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -17,8 +67,8 @@ export const AuthProvider = ({ children }) => {
   // Load and verify session on mount
   useEffect(() => {
     const initAuth = async () => {
-      const savedToken = localStorage.getItem("token");
-      const savedUser = localStorage.getItem("user");
+      const savedToken = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const savedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
 
       if (savedToken && savedUser) {
         try {
@@ -29,11 +79,22 @@ export const AuthProvider = ({ children }) => {
           const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/auth/me`);
           setUser(res.data);
           setToken(savedToken);
-          localStorage.setItem("user", JSON.stringify(res.data));
+          
+          if (localStorage.getItem("token")) {
+            localStorage.setItem("user", JSON.stringify(res.data));
+          } else {
+            sessionStorage.setItem("user", JSON.stringify(res.data));
+          }
         } catch (err) {
           console.error("Session restoration failed:", err);
-          // Invalid token – clean up
-          logout();
+          // Invalid token – clean up storage silently without navigating away
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          sessionStorage.removeItem("token");
+          sessionStorage.removeItem("user");
+          delete axios.defaults.headers.common["Authorization"];
+          setUser(null);
+          setToken(null);
         }
       }
       setLoading(false);
@@ -42,17 +103,30 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, password, rememberMe = false) => {
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
-      const { access_token, user: loggedUser } = response.data;
       
-      // Store in localStorage
-      localStorage.setItem("token", access_token);
-      localStorage.setItem("user", JSON.stringify(loggedUser));
+      const data = response?.data;
+      if (!data || !data.access_token || !data.user) {
+        throw new Error("Invalid server response structure.");
+      }
+
+      const { access_token, user: loggedUser } = data;
+      
+      // Clear previous storage
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+
+      // Store in selected storage
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem("token", access_token);
+      storage.setItem("user", JSON.stringify(loggedUser));
       
       // Update axios headers and state
       axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
@@ -68,20 +142,22 @@ export const AuthProvider = ({ children }) => {
         navigate("/user/dashboard");
       }
     } catch (err) {
-      const msg = err.response?.data?.detail || "Login failed. Please check your credentials.";
+      const msg = extractErrorMessage(err, "Invalid email or password.");
       showError(msg);
-      throw err;
+      const errorObj = new Error(msg);
+      errorObj.originalError = err;
+      throw errorObj;
     }
   };
 
-  const register = async (fullName, email, password, confirmPassword, role) => {
+  const register = async (fullName, email, password, confirmPassword) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
         fullName,
-        email,
+        email: email.trim().toLowerCase(),
         password,
         confirmPassword,
-        role,
+        agreeToTerms: true,
       });
       showSuccess("Successfully registered! Please log in.");
       navigate("/login");
@@ -95,6 +171,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
     delete axios.defaults.headers.common["Authorization"];
     setUser(null);
     setToken(null);

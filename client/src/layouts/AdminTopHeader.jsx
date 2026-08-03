@@ -1,30 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sun, Moon, Bell, Search, Menu, LogOut, Settings, User } from 'lucide-react';
+import { Sun, Moon, Menu, LogOut, Settings } from 'lucide-react';
 import { useTheme } from '../shared/context/ThemeContext';
 import { useAuth } from '../shared/context/AuthContext';
-import { useNotifications } from '../features/notifications/hooks/useNotifications';
 
 export default function AdminTopHeader({ onMobileMenuOpen, sidebarCollapsed }) {
   const { isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
-  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
 
-  // Derive breadcrumb from route
-  const crumbs = location.pathname
-    .split('/')
-    .filter(Boolean)
-    .map(seg => ({
-      label: seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' '),
-      path: '/' + seg,
-    }));
+  // Derive current simplified page title (e.g. Dashboard, Reviews, Users, Analytics, Reports, Settings)
+  const lastSeg = location.pathname.split('/').filter(Boolean).pop() || 'dashboard';
+  const pageTitle = lastSeg.charAt(0).toUpperCase() + lastSeg.slice(1).replace(/-/g, ' ');
 
   return (
-    <header className="sticky top-0 z-20 bg-white dark:bg-[#1a1a1a] border-b border-[#EBEBEB] dark:border-[#333333] h-16 flex items-center px-4 sm:px-6 gap-4 text-left">
+    <header className="sticky top-0 z-20 bg-white dark:bg-[#1a1a1a] border-b border-[#EBEBEB] dark:border-[#333333] h-16 flex items-center px-4 sm:px-6 gap-4 text-left font-sans">
       
       {/* Mobile menu button */}
       <button
@@ -35,25 +28,10 @@ export default function AdminTopHeader({ onMobileMenuOpen, sidebarCollapsed }) {
         <Menu className="w-5 h-5" />
       </button>
 
-      {/* Breadcrumb */}
-      <nav className="hidden sm:flex items-center gap-1.5 text-xs font-semibold flex-1 min-w-0">
-        <span className="text-[#717171]">Control Panel</span>
-        {crumbs.map((crumb, i) => (
-          <React.Fragment key={crumb.path}>
-            <span className="text-[#717171]">/</span>
-            <span
-              className={`truncate ${
-                i === crumbs.length - 1
-                  ? 'text-[#222222] dark:text-white font-extrabold'
-                  : 'text-[#717171] cursor-pointer hover:text-[#FF385C]'
-              }`}
-              onClick={() => i < crumbs.length - 1 && navigate(crumb.path)}
-            >
-              {crumb.label}
-            </span>
-          </React.Fragment>
-        ))}
-      </nav>
+      {/* Clean Minimal Page Title Header */}
+      <div className="hidden sm:flex items-center text-sm font-extrabold text-[#222222] dark:text-white flex-1 min-w-0">
+        {pageTitle}
+      </div>
       <div className="flex-1 sm:hidden" />
 
       {/* Right controls */}
@@ -61,24 +39,10 @@ export default function AdminTopHeader({ onMobileMenuOpen, sidebarCollapsed }) {
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-full text-[#717171] hover:bg-[#F7F7F7] dark:hover:bg-[#2A2A2A] hover:text-[#222222] dark:hover:text-white transition-colors"
+          className="p-2 rounded-full text-[#717171] hover:bg-[#F7F7F7] dark:hover:bg-[#2A2A2A] hover:text-[#222222] dark:hover:text-white transition-colors cursor-pointer"
           aria-label="Toggle theme"
         >
           {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </button>
-
-        {/* Notifications */}
-        <button
-          onClick={() => navigate('/admin/notifications')}
-          className="relative p-2 rounded-full text-[#717171] hover:bg-[#F7F7F7] dark:hover:bg-[#2A2A2A] hover:text-[#222222] dark:hover:text-white transition-colors"
-          aria-label="Notifications"
-        >
-          <Bell className="w-4 h-4" />
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-[#D93025] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
         </button>
 
         {/* User avatar dropdown */}
@@ -88,8 +52,12 @@ export default function AdminTopHeader({ onMobileMenuOpen, sidebarCollapsed }) {
             className="flex items-center gap-2 border border-[#EBEBEB] dark:border-[#333333] hover:shadow-xs transition-shadow rounded-full p-1 bg-white dark:bg-[#222222] cursor-pointer"
             aria-label="Admin menu"
           >
-            <div className="w-7 h-7 rounded-full bg-[#FF385C] flex items-center justify-center text-white text-xs font-bold shadow-xs">
-              {user?.fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'A'}
+            <div className="w-7 h-7 rounded-full bg-[#FF385C] flex items-center justify-center text-white text-xs font-bold shadow-xs overflow-hidden">
+              {user?.profileImage ? (
+                <img src={user.profileImage} alt="" className="w-full h-full object-cover" />
+              ) : (
+                user?.fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'A'
+              )}
             </div>
           </button>
 
@@ -108,14 +76,8 @@ export default function AdminTopHeader({ onMobileMenuOpen, sidebarCollapsed }) {
                 </div>
                 <div className="p-1">
                   <button
-                    onClick={() => { navigate('/admin/profile'); setProfileOpen(false); }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#222222] dark:text-white rounded-xl hover:bg-[#F7F7F7] dark:hover:bg-[#2A2A2A] transition-colors"
-                  >
-                    <User className="w-4 h-4 text-[#717171]" /> Profile
-                  </button>
-                  <button
                     onClick={() => { navigate('/admin/settings'); setProfileOpen(false); }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#222222] dark:text-white rounded-xl hover:bg-[#F7F7F7] dark:hover:bg-[#2A2A2A] transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#222222] dark:text-white rounded-xl hover:bg-[#F7F7F7] dark:hover:bg-[#2A2A2A] transition-colors cursor-pointer"
                   >
                     <Settings className="w-4 h-4 text-[#717171]" /> Settings
                   </button>

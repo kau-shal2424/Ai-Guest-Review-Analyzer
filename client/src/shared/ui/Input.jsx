@@ -48,7 +48,7 @@ export default function Input({
         />
 
         {rightIcon && (
-          <div className="absolute right-3.5 text-slate-400 pointer-events-none flex items-center">
+          <div className="absolute right-3.5 text-slate-400 flex items-center">
             {rightIcon}
           </div>
         )}

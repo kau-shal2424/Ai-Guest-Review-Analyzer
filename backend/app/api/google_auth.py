@@ -115,31 +115,40 @@ async def google_callback(request: Request):
     if existing_user:
         user_id = existing_user["_id"]
         full_name = existing_user["fullName"]
+        role = existing_user.get("role", "user")
     else:
-        # Auto-register Google user (no password needed)
+        # Auto-register Google user with role='user' (no password needed)
         user_data = {
             "fullName": google_name,
             "email": google_email,
             "password": "__google_oauth__",
             "authProvider": "google"
         }
-        user_id = register_user(user_data)
+        user_id = register_user(user_data, role="user")
         full_name = google_name
+        role = "user"
 
-    # Generate JWT
+    # Generate JWT with email, role, and userId
     expires_delta = timedelta(days=7)
+    token_payload = {
+        "email": google_email,
+        "sub": google_email,
+        "role": role,
+        "userId": str(user_id)
+    }
     access_token = create_access_token(
-        data={"sub": google_email},
+        data=token_payload,
         expires_delta=expires_delta
     )
 
-    # Redirect to frontend callback page with token and user info
+    # Redirect to frontend callback page with token and user info (including role)
     import urllib.parse
     import json
     user_dict = {
         "id": str(user_id),
         "fullName": full_name,
-        "email": google_email
+        "email": google_email,
+        "role": role
     }
     user_json = urllib.parse.quote(json.dumps(user_dict))
     redirect_url = f"{FRONTEND_URL}/auth/callback?token={access_token}&user={user_json}"
